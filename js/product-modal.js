@@ -37,6 +37,9 @@ function openProductModal(product) {
   // Renderizar carrusel de imágenes
   renderModalCarousel(product.imagenes || []);
 
+  // Cargar productos recomendados
+  loadRecommendedProducts(product);
+
   // Mostrar modal
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden'; // Prevenir scroll del body
@@ -313,4 +316,128 @@ function makeProductsClickable() {
     // Hacer el cursor pointer en toda la tarjeta
     newCard.style.cursor = 'pointer';
   });
+}
+
+// ========== PRODUCTOS RECOMENDADOS ==========
+async function loadRecommendedProducts(currentProduct) {
+  const container = document.getElementById('recommendedProducts');
+  const grid = document.getElementById('recommendedGrid');
+
+  if (!currentProduct || !currentProduct.categoria_id) {
+    container.style.display = 'none';
+    return;
+  }
+
+  try {
+    // Obtener productos de la misma categoría
+    const { data: products, error } = await supabaseClient
+      .from('productos')
+      .select('*')
+      .eq('categoria_id', currentProduct.categoria_id)
+      .eq('activo', true)
+      .neq('id', currentProduct.id)
+      .limit(50);
+
+    if (error || !products || products.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const currentPrice = parseFloat(currentProduct.precio);
+
+    // Clasificar productos por precio
+    const cheaper = products.filter(p => parseFloat(p.precio) < currentPrice).sort((a, b) => parseFloat(b.precio) - parseFloat(a.precio));
+    const moreExpensive = products.filter(p => parseFloat(p.precio) > currentPrice).sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
+    const similar = products.filter(p => {
+      const price = parseFloat(p.precio);
+      const diff = Math.abs(price - currentPrice) / currentPrice;
+      return diff <= 0.15 && price !== currentPrice;
+    });
+
+    const recommended = [];
+
+    // Agregar más barato
+    if (cheaper.length > 0) {
+      recommended.push(cheaper[0]);
+    } else {
+      // Si no hay más barato, buscar dentro del rango 50%
+      const fallback = products.filter(p => parseFloat(p.precio) >= currentPrice * 0.5 && parseFloat(p.precio) < currentPrice);
+      if (fallback.length > 0) recommended.push(fallback[0]);
+    }
+
+    // Agregar similar
+    if (similar.length > 0) {
+      const randomSimilar = similar[Math.floor(Math.random() * similar.length)];
+      if (!recommended.find(p => p.id === randomSimilar.id)) {
+        recommended.push(randomSimilar);
+      }
+    }
+
+    // Agregar más caro
+    if (moreExpensive.length > 0) {
+      recommended.push(moreExpensive[0]);
+    } else {
+      // Si no hay más caro, buscar dentro del rango 50%
+      const fallback = products.filter(p => parseFloat(p.precio) > currentPrice && parseFloat(p.precio) <= currentPrice * 1.5);
+      if (fallback.length > 0) recommended.push(fallback[0]);
+    }
+
+    // Si aún no tenemos 3, llenar con productos aleatorios de la categoría
+    while (recommended.length < 3 && products.length > recommended.length) {
+      const random = products[Math.floor(Math.random() * products.length)];
+      if (!recommended.find(p => p.id === random.id)) {
+        recommended.push(random);
+      }
+    }
+
+    // Si no hay productos recomendados, ocultar
+    if (recommended.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    // Renderizar productos recomendados
+    grid.innerHTML = recommended.map(product => {
+      const mainImage = product.imagenes && product.imagenes.length > 0
+        ? product.imagenes[0]
+        : 'https://via.placeholder.com/300x300?text=Sin+Imagen';
+
+      return `
+        <div class="recommended-item" data-product-id="${product.id}">
+          <img src="${mainImage}" alt="${product.nombre}" class="recommended-image">
+          <div class="recommended-info">
+            <p class="recommended-name">${product.nombre}</p>
+            <p class="recommended-price">${formatPrice(product.precio)}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.style.display = 'block';
+
+    // Hacer items clicables
+    document.querySelectorAll('.recommended-item').forEach(item => {
+      item.addEventListener('click', async () => {
+        const productId = item.dataset.productId;
+
+        // Cargar producto completo
+        const { data: product, error } = await supabaseClient
+          .from('productos')
+          .select(`
+            *,
+            categoria:categorias(*)
+          `)
+          .eq('id', productId)
+          .single();
+
+        if (!error && product) {
+          openProductModal(product);
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error('Error al cargar productos recomendados:', error);
+    container.style.display = 'none';
+  }
 }

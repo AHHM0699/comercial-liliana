@@ -16,8 +16,8 @@ let currentFilters = {
   search: '',
   categoryId: null,
   categoryGroup: null,
-  orderBy: 'created_at',
-  orderDirection: 'desc',
+  orderBy: 'categoria_id',
+  orderDirection: 'asc',
   offset: 0,
   limit: CONFIG.PRODUCTS_PER_PAGE
 };
@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializar componentes
   initPromoBanner();
   initSearchBar();
-  initSortControls();
   initWhatsAppButtons();
   initIntersectionObserver();
 
@@ -77,23 +76,6 @@ function initSearchBar() {
       displayedProducts = [];
       loadProducts();
     }, 500);
-  });
-}
-
-// ========== CONTROLES DE ORDENAMIENTO ==========
-function initSortControls() {
-  const sortSelect = document.getElementById('sortSelect');
-
-  sortSelect.addEventListener('change', (e) => {
-    const value = e.target.value;
-    const [orderBy, direction] = value.split('_');
-
-    currentFilters.orderBy = orderBy === 'precio' ? 'precio' : orderBy === 'nombre' ? 'nombre' : 'created_at';
-    currentFilters.orderDirection = direction;
-    currentFilters.offset = 0;
-    displayedProducts = [];
-
-    loadProducts();
   });
 }
 
@@ -604,6 +586,24 @@ function showEmptyState() {
 function hideEmptyState() {
   document.getElementById('emptyState').style.display = 'none';
 }
+
+// ========== BOTÓN VOLVER ARRIBA ==========
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 500) {
+    scrollTopBtn.style.display = 'flex';
+  } else {
+    scrollTopBtn.style.display = 'none';
+  }
+});
+
+scrollTopBtn.addEventListener('click', () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
 
 // ========== LIMPIAR AL SALIR ==========
 window.addEventListener('beforeunload', () => {
