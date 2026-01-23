@@ -116,12 +116,17 @@ function initNavigation() {
       btn.classList.add('active');
 
       // Mostrar sección correspondiente
+      document.getElementById('productsSection').style.display = 'none';
+      document.getElementById('categoriesSection').style.display = 'none';
+      document.getElementById('groupsSection').style.display = 'none';
+
       if (section === 'products') {
         document.getElementById('productsSection').style.display = 'block';
-        document.getElementById('categoriesSection').style.display = 'none';
       } else if (section === 'categories') {
-        document.getElementById('productsSection').style.display = 'none';
         document.getElementById('categoriesSection').style.display = 'block';
+      } else if (section === 'groups') {
+        document.getElementById('groupsSection').style.display = 'block';
+        loadGroups();
       }
     });
   });
@@ -862,9 +867,225 @@ function hideLoading() {
   document.getElementById('loadingOverlay').style.display = 'none';
 }
 
+// ========== GESTIÓN DE GRUPOS ==========
+let allGroups = [];
+let currentEditingGroup = null;
+
+// Inicializar eventos de grupos
+document.getElementById('newGroupBtn').addEventListener('click', () => openGroupModal());
+document.getElementById('closeGroupModal').addEventListener('click', closeGroupModal);
+document.getElementById('cancelGroupBtn').addEventListener('click', closeGroupModal);
+document.getElementById('saveGroupBtn').addEventListener('click', saveGroup);
+
+async function loadGroups() {
+  showLoading();
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('grupos_categorias')
+      .select('*')
+      .order('orden', { ascending: true });
+
+    if (error) throw error;
+
+    allGroups = data || [];
+    renderGroupsGrid();
+  } catch (error) {
+    console.error('Error al cargar grupos:', error);
+    alert('Error al cargar grupos. Es posible que la tabla no exista aún.');
+  }
+
+  hideLoading();
+}
+
+function renderGroupsGrid() {
+  const grid = document.getElementById('groupsGrid');
+
+  if (allGroups.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <p>No hay grupos registrados</p>
+        <p><small>Haz clic en "+ Nuevo Grupo" para crear uno</small></p>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = allGroups.map(group => `
+    <div class="category-card" style="border-left: 4px solid ${group.color}">
+      <div class="category-header">
+        <span class="category-icon">${group.icono}</span>
+        <h3 class="category-name">${group.nombre}</h3>
+      </div>
+      <div class="category-info">
+        <span class="category-badge" style="background-color: ${group.color}20; color: ${group.color}">
+          ${group.clave}
+        </span>
+        <span class="category-order">Orden: ${group.orden}</span>
+      </div>
+      <div class="category-actions">
+        <button class="btn-icon" onclick="editGroup('${group.id}')" title="Editar">
+          ✏️
+        </button>
+        <button class="btn-icon btn-icon-danger" onclick="confirmDeleteGroup('${group.id}')" title="Eliminar">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openGroupModal(groupId = null) {
+  const modal = document.getElementById('groupModal');
+  const title = document.getElementById('groupModalTitle');
+  const form = document.getElementById('groupForm');
+
+  form.reset();
+
+  if (groupId) {
+    title.textContent = 'Editar Grupo';
+    loadGroupData(groupId);
+  } else {
+    title.textContent = 'Nuevo Grupo';
+    currentEditingGroup = null;
+    // Deshabilitar edición de clave en nuevo grupo
+    document.getElementById('groupKey').disabled = false;
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeGroupModal() {
+  document.getElementById('groupModal').style.display = 'none';
+  currentEditingGroup = null;
+}
+
+async function loadGroupData(groupId) {
+  const group = allGroups.find(g => g.id === groupId);
+
+  if (group) {
+    currentEditingGroup = group;
+
+    document.getElementById('groupId').value = group.id;
+    document.getElementById('groupKey').value = group.clave;
+    document.getElementById('groupName').value = group.nombre;
+    document.getElementById('groupIcon').value = group.icono;
+    document.getElementById('groupColor').value = group.color;
+    document.getElementById('groupOrder').value = group.orden || 0;
+
+    // Deshabilitar edición de clave en edición
+    document.getElementById('groupKey').disabled = true;
+  }
+}
+
+async function saveGroup() {
+  const form = document.getElementById('groupForm');
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  showLoading();
+
+  try {
+    const groupData = {
+      clave: document.getElementById('groupKey').value.trim().toLowerCase(),
+      nombre: document.getElementById('groupName').value.trim(),
+      icono: document.getElementById('groupIcon').value.trim(),
+      color: document.getElementById('groupColor').value.trim(),
+      orden: parseInt(document.getElementById('groupOrder').value) || 0,
+      activo: true
+    };
+
+    let result;
+
+    if (currentEditingGroup) {
+      // Actualizar grupo existente
+      const { data, error } = await supabaseClient
+        .from('grupos_categorias')
+        .update(groupData)
+        .eq('id', currentEditingGroup.id)
+        .select();
+
+      if (error) throw error;
+      result = data;
+    } else {
+      // Crear nuevo grupo
+      const { data, error } = await supabaseClient
+        .from('grupos_categorias')
+        .insert([groupData])
+        .select();
+
+      if (error) throw error;
+      result = data;
+    }
+
+    alert('✅ Grupo guardado correctamente');
+    closeGroupModal();
+    await loadGroups();
+
+  } catch (error) {
+    console.error('Error al guardar grupo:', error);
+    if (error.code === '23505') {
+      alert('❌ Ya existe un grupo con esa clave');
+    } else {
+      alert('❌ Error al guardar grupo: ' + error.message);
+    }
+  }
+
+  hideLoading();
+}
+
+function editGroup(groupId) {
+  openGroupModal(groupId);
+}
+
+function confirmDeleteGroup(groupId) {
+  const group = allGroups.find(g => g.id === groupId);
+
+  if (!group) return;
+
+  openConfirmModal(
+    `¿Estás seguro de eliminar el grupo "${group.nombre}"?`,
+    'Esta acción no se puede deshacer.',
+    async () => {
+      await deleteGroup(groupId);
+    }
+  );
+}
+
+async function deleteGroup(groupId) {
+  showLoading();
+
+  try {
+    const { error } = await supabaseClient
+      .from('grupos_categorias')
+      .delete()
+      .eq('id', groupId);
+
+    if (error) throw error;
+
+    alert('✅ Grupo eliminado correctamente');
+    await loadGroups();
+
+  } catch (error) {
+    console.error('Error al eliminar grupo:', error);
+    if (error.code === '23503') {
+      alert('❌ No se puede eliminar el grupo porque tiene categorías asociadas');
+    } else {
+      alert('❌ Error al eliminar grupo: ' + error.message);
+    }
+  }
+
+  hideLoading();
+}
+
 // Exponer funciones globalmente para onclick en HTML
 window.editProduct = editProduct;
 window.confirmDeleteProduct = confirmDeleteProduct;
 window.editCategory = editCategory;
 window.confirmDeleteCategory = confirmDeleteCategory;
+window.editGroup = editGroup;
+window.confirmDeleteGroup = confirmDeleteGroup;
 window.removeImage = removeImage;
