@@ -163,6 +163,20 @@
           </div>
         </section>
 
+        <!-- ========== SECCIÓN GRUPOS ========== -->
+        <section id="groupsSection" class="admin-section" style="display: none;">
+          <div class="section-header">
+            <h1 class="section-title">Gestión de Grupos</h1>
+            <button id="newGroupBtn" class="btn btn-primary">
+              + Nuevo Grupo
+            </button>
+          </div>
+
+          <div class="groups-grid" id="groupsGrid">
+            <!-- Se llenará dinámicamente -->
+          </div>
+        </section>
+
       </div>
     </main>
 
@@ -347,6 +361,93 @@
         </button>
         <button type="button" class="btn btn-primary" id="saveCategoryBtn">
           Guardar Categoría
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL GRUPO ========== -->
+  <div id="groupModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="groupModalTitle">Nuevo Grupo</h2>
+        <button class="modal-close" id="closeGroupModal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="groupForm">
+          <input type="hidden" id="groupId">
+
+          <div class="form-group">
+            <label for="groupKey" class="form-label">Clave (identificador) *</label>
+            <input
+              type="text"
+              id="groupKey"
+              class="form-input"
+              placeholder="Ej: sala_comedor (sin espacios, minúsculas)"
+              required
+              pattern="[a-z_]+"
+            >
+            <small class="form-help">Solo letras minúsculas y guiones bajos</small>
+          </div>
+
+          <div class="form-group">
+            <label for="groupName" class="form-label">Nombre *</label>
+            <input
+              type="text"
+              id="groupName"
+              class="form-input"
+              placeholder="Ej: Sala y Comedor"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="groupIcon" class="form-label">Icono (Emoji) *</label>
+            <input
+              type="text"
+              id="groupIcon"
+              class="form-input"
+              placeholder="🏠"
+              maxlength="2"
+              required
+            >
+            <small class="form-help">Escoge un emoji que represente el grupo</small>
+          </div>
+
+          <div class="form-group">
+            <label for="groupColor" class="form-label">Color *</label>
+            <input
+              type="text"
+              id="groupColor"
+              class="form-input"
+              placeholder="#2C4A6B"
+              required
+              pattern="#[0-9A-Fa-f]{6}"
+            >
+            <small class="form-help">Código hexadecimal (ej: #2C4A6B)</small>
+          </div>
+
+          <div class="form-group">
+            <label for="groupOrder" class="form-label">Orden</label>
+            <input
+              type="number"
+              id="groupOrder"
+              class="form-input"
+              placeholder="0"
+              min="0"
+              value="0"
+            >
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="cancelGroupBtn">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" id="saveGroupBtn">
+          Guardar Grupo
         </button>
       </div>
     </div>

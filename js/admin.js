@@ -216,6 +216,8 @@ async function loadProducts() {
   const result = await getProducts({
     search,
     categoryId: categoryId || null,
+    orderBy: 'nombre',
+    orderDirection: 'asc',
     limit: 100
   });
 

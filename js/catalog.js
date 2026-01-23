@@ -81,16 +81,10 @@ function initSearchBar() {
 
 // ========== BOTONES DE WHATSAPP ==========
 function initWhatsAppButtons() {
-  const headerBtn = document.getElementById('headerWhatsappBtn');
   const ctaBtn = document.getElementById('ctaWhatsappBtn');
   const floatBtn = document.getElementById('whatsappFloat');
 
   const defaultMessage = '¡Hola! Me gustaría ver su catálogo de productos.';
-
-  headerBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    openWhatsApp(defaultMessage);
-  });
 
   ctaBtn.addEventListener('click', () => {
     openWhatsApp('¡Hola! Estoy buscando algo especial. ¿Podrían ayudarme?');
