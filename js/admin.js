@@ -1046,9 +1046,8 @@ function confirmDeleteGroup(groupId) {
 
   if (!group) return;
 
-  openConfirmModal(
-    `¿Estás seguro de eliminar el grupo "${group.nombre}"?`,
-    'Esta acción no se puede deshacer.',
+  showConfirmModal(
+    `¿Estás seguro de eliminar el grupo "${group.nombre}"? Esta acción no se puede deshacer.`,
     async () => {
       await deleteGroup(groupId);
     }
