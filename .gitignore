@@ -16,3 +16,6 @@ npm-debug.log*
 # Archivos temporales
 *.tmp
 .cache/
+
+# Archivos personales
+COSAS RARAS.rtf

@@ -495,6 +495,36 @@ body {
   margin: var(--espacio-xs) 0;
 }
 
+/* Precios con descuento */
+.product-pricing {
+  margin: var(--espacio-xs) 0;
+}
+
+.product-price-original {
+  font-size: 1rem;
+  color: #999;
+  text-decoration: line-through;
+  margin: 0;
+  margin-bottom: 0.25rem;
+}
+
+.product-price-discount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #E74C3C;
+  margin: 0;
+  margin-bottom: 0.25rem;
+}
+
+.product-price-note {
+  font-size: 0.85rem;
+  color: #27AE60;
+  font-weight: 600;
+  margin: 0;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
 .product-description {
   font-size: 0.9rem;
   color: var(--gris-texto);

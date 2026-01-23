@@ -213,7 +213,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="productPrice" class="form-label">Precio (S/) *</label>
+              <label for="productPrice" class="form-label">Precio Rebajado (S/) *</label>
               <input
                 type="number"
                 id="productPrice"
@@ -223,8 +223,24 @@
                 min="0"
                 required
               >
+              <small class="form-hint">Este es el precio que pagaría el cliente</small>
             </div>
 
+            <div class="form-group">
+              <label for="productOriginalPrice" class="form-label">Precio Original (S/)</label>
+              <input
+                type="number"
+                id="productOriginalPrice"
+                class="form-input"
+                placeholder="1200.00"
+                step="0.01"
+                min="0"
+              >
+              <small class="form-hint">Opcional: Precio de lista antes del descuento</small>
+            </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label for="productCategory" class="form-label">Categoría *</label>
               <select id="productCategory" class="form-select" required>

@@ -332,6 +332,18 @@ function createProductCard(product) {
   const price = formatPrice(product.precio);
   const categoryName = product.categoria?.nombre || 'Sin categoría';
 
+  // Calcular descuento si hay precio original
+  const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
+  let discountPercentage = 0;
+  let originalPrice = '';
+
+  if (hasDiscount) {
+    const original = parseFloat(product.precio_original);
+    const current = parseFloat(product.precio);
+    discountPercentage = Math.round(((original - current) / original) * 100);
+    originalPrice = formatPrice(product.precio_original);
+  }
+
   return `
     <div class="product-card" data-product-id="${product.id}">
       <div class="product-carousel" data-carousel-id="${product.id}">
@@ -380,14 +392,22 @@ function createProductCard(product) {
           </div>
         ` : ''}
 
-        ${product.es_oferta ? `
-          <span class="product-badge">¡OFERTA!</span>
+        ${product.es_oferta || hasDiscount ? `
+          <span class="product-badge">${hasDiscount ? `¡${discountPercentage}% OFF!` : '¡OFERTA!'}</span>
         ` : ''}
       </div>
 
       <div class="product-content">
         <h3 class="product-name">${product.nombre}</h3>
-        <p class="product-price">${price}</p>
+        ${hasDiscount ? `
+          <div class="product-pricing">
+            <p class="product-price-original">${originalPrice}</p>
+            <p class="product-price-discount">${price}</p>
+            <p class="product-price-note">💬 ¡Consulta por el precio final!</p>
+          </div>
+        ` : `
+          <p class="product-price">${price}</p>
+        `}
         ${product.descripcion ? `
           <p class="product-description">${product.descripcion}</p>
         ` : ''}
@@ -396,6 +416,8 @@ function createProductCard(product) {
           data-product-id="${product.id}"
           data-product-name="${product.nombre}"
           data-product-price="${price}"
+          data-has-discount="${hasDiscount}"
+          data-original-price="${hasDiscount ? originalPrice : ''}"
         >
           📱 Consultar
         </button>
@@ -416,8 +438,17 @@ function initProductCarousels() {
     btn.addEventListener('click', () => {
       const name = btn.dataset.productName;
       const price = btn.dataset.productPrice;
+      const hasDiscount = btn.dataset.hasDiscount === 'true';
+      const originalPrice = btn.dataset.originalPrice;
 
-      const message = `¡Hola! Me interesa este producto:\n\n📦 ${name}\n💰 Precio: ${price}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+      let message = `¡Hola! Me interesa este producto:\n\n📦 ${name}\n`;
+
+      if (hasDiscount) {
+        message += `💰 Precio de lista: ${originalPrice}\n🎁 Precio rebajado: ${price}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
+      } else {
+        message += `💰 Precio: ${price}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+      }
+
       openWhatsApp(message);
     });
   });

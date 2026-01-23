@@ -22,15 +22,45 @@ function openProductModal(product) {
   const modalDescription = document.getElementById('modalProductDescription');
   const modalWhatsappBtn = document.getElementById('modalWhatsappBtn');
 
+  // Calcular descuento si existe
+  const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
+  let discountPercentage = 0;
+
+  if (hasDiscount) {
+    const original = parseFloat(product.precio_original);
+    const current = parseFloat(product.precio);
+    discountPercentage = Math.round(((original - current) / original) * 100);
+  }
+
   // Llenar información
   modalName.textContent = product.nombre;
   modalCategory.textContent = product.categoria?.nombre || 'Sin categoría';
-  modalPrice.textContent = formatPrice(product.precio);
+
+  // Mostrar precio con descuento si aplica
+  if (hasDiscount) {
+    modalPrice.innerHTML = `
+      <div style="text-align: center;">
+        <p style="font-size: 1rem; color: #999; text-decoration: line-through; margin: 0;">${formatPrice(product.precio_original)}</p>
+        <p style="font-size: 2rem; font-weight: 700; color: #E74C3C; margin: 0.25rem 0;">${formatPrice(product.precio)}</p>
+        <p style="font-size: 0.9rem; color: #27AE60; font-weight: 600; font-style: italic; margin: 0.5rem 0;">¡${discountPercentage}% de descuento! 💬 Consulta por el precio final</p>
+      </div>
+    `;
+  } else {
+    modalPrice.textContent = formatPrice(product.precio);
+  }
+
   modalDescription.textContent = product.descripcion || 'Sin descripción disponible';
 
   // Configurar botón de WhatsApp
   modalWhatsappBtn.onclick = () => {
-    const message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+    let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
+
+    if (hasDiscount) {
+      message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
+    } else {
+      message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+    }
+
     openWhatsApp(message);
   };
 

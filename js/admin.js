@@ -395,6 +395,7 @@ async function loadProductData(productId) {
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.nombre;
     document.getElementById('productPrice').value = product.precio;
+    document.getElementById('productOriginalPrice').value = product.precio_original || '';
     document.getElementById('productCategory').value = product.categoria_id;
     document.getElementById('productDescription').value = product.descripcion || '';
     document.getElementById('productIsOffer').checked = product.es_oferta;
@@ -438,7 +439,7 @@ function initProductForm() {
   saveBtn.addEventListener('click', saveProduct);
 
   // Actualizar preview al cambiar campos
-  ['productName', 'productPrice', 'productDescription', 'productIsOffer'].forEach(id => {
+  ['productName', 'productPrice', 'productOriginalPrice', 'productDescription', 'productIsOffer'].forEach(id => {
     const element = document.getElementById(id);
     if (element) {
       element.addEventListener('input', updateProductPreview);
@@ -597,10 +598,22 @@ function updateProductPreview() {
 
   const name = document.getElementById('productName').value || 'Nombre del producto';
   const price = document.getElementById('productPrice').value || '0';
+  const originalPrice = document.getElementById('productOriginalPrice').value || '';
   const description = document.getElementById('productDescription').value || '';
   const isOffer = document.getElementById('productIsOffer').checked;
 
   const formattedPrice = formatPrice(price);
+  const hasDiscount = originalPrice && parseFloat(originalPrice) > parseFloat(price);
+
+  let discountPercentage = 0;
+  let formattedOriginalPrice = '';
+
+  if (hasDiscount) {
+    const original = parseFloat(originalPrice);
+    const current = parseFloat(price);
+    discountPercentage = Math.round(((original - current) / original) * 100);
+    formattedOriginalPrice = formatPrice(originalPrice);
+  }
 
   const firstImage = productImages.length > 0
     ? productImages[0].url
@@ -612,11 +625,19 @@ function updateProductPreview() {
         <div class="product-carousel-slide">
           <img src="${firstImage}" alt="${name}" class="product-image">
         </div>
-        ${isOffer ? '<span class="product-badge">¡OFERTA!</span>' : ''}
+        ${isOffer || hasDiscount ? `<span class="product-badge">${hasDiscount ? `¡${discountPercentage}% OFF!` : '¡OFERTA!'}</span>` : ''}
       </div>
       <div class="product-content">
         <h3 class="product-name">${name}</h3>
-        <p class="product-price">${formattedPrice}</p>
+        ${hasDiscount ? `
+          <div class="product-pricing">
+            <p class="product-price-original">${formattedOriginalPrice}</p>
+            <p class="product-price-discount">${formattedPrice}</p>
+            <p class="product-price-note">💬 ¡Consulta por el precio final!</p>
+          </div>
+        ` : `
+          <p class="product-price">${formattedPrice}</p>
+        `}
         ${description ? `<p class="product-description">${description}</p>` : ''}
         <button class="btn btn-whatsapp product-consult-btn">
           📱 Consultar
@@ -663,9 +684,11 @@ async function saveProduct() {
     }
 
     // Preparar datos del producto
+    const originalPriceValue = document.getElementById('productOriginalPrice').value;
     const productData = {
       nombre: document.getElementById('productName').value.trim(),
       precio: parseFloat(document.getElementById('productPrice').value),
+      precio_original: originalPriceValue ? parseFloat(originalPriceValue) : null,
       categoria_id: document.getElementById('productCategory').value,
       descripcion: document.getElementById('productDescription').value.trim(),
       es_oferta: document.getElementById('productIsOffer').checked,
