@@ -39,10 +39,16 @@
   <header class="header">
     <div class="container">
       <div class="header-content">
-        <!-- Logo -->
-        <a href="index.html" class="header-logo-link">
-          <img src="./assets/LOGO_LILIANA_NUEVO_2026.png" alt="Comercial Liliana" class="header-logo">
-        </a>
+        <!-- Logo y Branding -->
+        <div class="header-brand">
+          <a href="index.html" class="header-logo-link">
+            <img src="./assets/LOGO_LILIANA_NUEVO_2026.png" alt="Comercial Liliana" class="header-logo">
+          </a>
+          <div class="header-brand-text">
+            <h1 class="header-brand-name">Comercial Liliana</h1>
+            <p class="header-brand-slogan">"Una familia que completará tu hogar"</p>
+          </div>
+        </div>
 
         <!-- Buscador -->
         <div class="header-search">
@@ -79,14 +85,6 @@
     </div>
   </div>
 
-  <!-- ========== BANNER DE BRANDING ========== -->
-  <div class="branding-banner">
-    <div class="container">
-      <h1 class="branding-title">Comercial Liliana</h1>
-      <p class="branding-slogan">"Una familia que completará tu hogar"</p>
-    </div>
-  </div>
-
   <!-- ========== SECCIÓN DE GRUPOS DE CATEGORÍAS ========== -->
   <section class="category-groups">
     <div class="container">
@@ -115,17 +113,6 @@
       <div class="products-controls">
         <div class="products-count" id="productsCount">
           Cargando productos...
-        </div>
-
-        <div class="products-sort">
-          <label for="sortSelect" class="sort-label">Ordenar:</label>
-          <select id="sortSelect" class="sort-select">
-            <option value="created_at_desc">Más recientes</option>
-            <option value="precio_asc">Menor a mayor precio</option>
-            <option value="precio_desc">Mayor a menor precio</option>
-            <option value="nombre_asc">A-Z</option>
-            <option value="nombre_desc">Z-A</option>
-          </select>
         </div>
       </div>
 
@@ -199,7 +186,18 @@
     </div>
   </footer>
 
-  <!-- ========== BOTÓN WHATSAPP FLOTANTE ========== -->
+  <!-- ========== BOTONES FLOTANTES ========== -->
+  <!-- Volver arriba / Ver categorías -->
+  <button
+    id="scrollTopBtn"
+    class="scroll-top-btn"
+    aria-label="Volver arriba"
+    style="display: none;"
+  >
+    <span class="scroll-top-icon">↑</span>
+  </button>
+
+  <!-- WhatsApp -->
   <a
     href="#"
     id="whatsappFloat"
@@ -237,6 +235,14 @@
           <button class="btn btn-whatsapp product-modal-whatsapp" id="modalWhatsappBtn">
             💬 Consultar por WhatsApp
           </button>
+
+          <!-- Productos Recomendados -->
+          <div class="recommended-products" id="recommendedProducts">
+            <h3 class="recommended-title">Productos Relacionados</h3>
+            <div class="recommended-grid" id="recommendedGrid">
+              <!-- Se llenarán dinámicamente -->
+            </div>
+          </div>
         </div>
       </div>
     </div>

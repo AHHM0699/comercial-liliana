@@ -8,49 +8,76 @@
   top: 0;
   left: 0;
   right: 0;
-  background-color: var(--blanco);
+  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-acero));
   box-shadow: var(--sombra-suave);
   z-index: 1000;
-  padding: var(--espacio-sm) 0;
+  padding: var(--espacio-md) 0;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--espacio-lg);
+  flex-wrap: wrap;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
   gap: var(--espacio-md);
 }
 
 .header-logo {
-  height: 80px;
+  height: 120px;
   width: auto;
 }
 
-@media (max-width: 768px) {
-  .header-logo {
-    height: 70px;
-  }
+.header-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header-brand-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--blanco);
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.header-brand-slogan {
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  line-height: 1.2;
 }
 
 .header-search {
   flex: 1;
-  max-width: 500px;
+  max-width: 400px;
+  min-width: 200px;
   position: relative;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 40px 10px 16px;
-  border: 2px solid #ddd;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 25px;
   font-size: 0.95rem;
   transition: all var(--transicion-rapida);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--azul-acero);
-  box-shadow: 0 0 0 3px rgba(107, 157, 194, 0.1);
+  border-color: var(--blanco);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  background-color: var(--blanco);
 }
 
 .search-icon {
@@ -64,11 +91,55 @@
 
 .header-whatsapp {
   min-width: 120px;
+  flex-shrink: 0;
 }
 
 /* Body con espacio para header fijo */
 body {
-  padding-top: 90px;
+  padding-top: 160px;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-top: 180px;
+  }
+
+  .header {
+    padding: var(--espacio-sm) 0;
+  }
+
+  .header-content {
+    gap: var(--espacio-sm);
+  }
+
+  .header-brand {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-logo {
+    height: 90px;
+  }
+
+  .header-brand-name {
+    font-size: 1.5rem;
+  }
+
+  .header-brand-slogan {
+    font-size: 0.9rem;
+  }
+
+  .header-search {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .header-whatsapp {
+    min-width: 100px;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
 }
 
 /* ========== BANNER PROMOCIONAL ========== */
@@ -96,38 +167,6 @@ body {
 .promo-icon {
   font-size: 1.3rem;
   margin-left: var(--espacio-xs);
-}
-
-/* ========== BANNER DE BRANDING ========== */
-.branding-banner {
-  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-acero));
-  color: var(--blanco);
-  text-align: center;
-  padding: var(--espacio-xl) var(--espacio-md);
-}
-
-.branding-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: var(--espacio-xs);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.branding-slogan {
-  font-size: 1.4rem;
-  font-style: italic;
-  opacity: 0.95;
-  font-weight: 300;
-}
-
-@media (max-width: 768px) {
-  .branding-title {
-    font-size: 2rem;
-  }
-
-  .branding-slogan {
-    font-size: 1.2rem;
-  }
 }
 
 /* ========== SECCIÓN DE GRUPOS DE CATEGORÍAS ========== */
@@ -554,9 +593,8 @@ body {
 }
 
 .footer-logo {
-  height: 90px;
+  height: 120px;
   width: auto;
-  filter: brightness(0) invert(1);
   margin-bottom: 10px;
 }
 
@@ -622,6 +660,51 @@ body {
 .whatsapp-float-icon {
   font-size: 2rem;
   color: var(--blanco);
+}
+
+/* ========== BOTÓN VOLVER ARRIBA ========== */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--azul-acero);
+  border: none;
+  box-shadow: var(--sombra-suave);
+  cursor: pointer;
+  transition: all var(--transicion-media);
+  z-index: 998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInUp 0.3s ease;
+}
+
+.scroll-top-btn:hover {
+  background-color: var(--azul-oscuro);
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-fuerte);
+}
+
+.scroll-top-icon {
+  font-size: 1.8rem;
+  color: var(--blanco);
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .scroll-top-btn {
+    width: 48px;
+    height: 48px;
+    bottom: 80px;
+    right: 16px;
+  }
+
+  .scroll-top-icon {
+    font-size: 1.6rem;
+  }
 }
 
 /* ========== ESTADOS VACÍOS ========== */
@@ -753,23 +836,24 @@ body {
 }
 
 .product-modal-close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 40px;
-  height: 40px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background-color: var(--blanco);
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all var(--transicion-rapida);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--gris-texto);
+  font-weight: bold;
 }
 
 .product-modal-close:hover {
@@ -932,6 +1016,74 @@ body {
   margin-top: auto;
   font-size: 1.2rem;
   padding: 16px 24px;
+}
+
+/* Productos recomendados en modal */
+.recommended-products {
+  margin-top: var(--espacio-xl);
+  padding-top: var(--espacio-lg);
+  border-top: 2px solid var(--gris-claro);
+}
+
+.recommended-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--azul-oscuro);
+  margin-bottom: var(--espacio-md);
+}
+
+.recommended-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espacio-md);
+}
+
+.recommended-item {
+  cursor: pointer;
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  transition: all var(--transicion-rapida);
+  border: 2px solid var(--gris-claro);
+}
+
+.recommended-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-suave);
+  border-color: var(--azul-acero);
+}
+
+.recommended-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background-color: var(--fondo-claro);
+}
+
+.recommended-info {
+  padding: var(--espacio-sm);
+  text-align: center;
+}
+
+.recommended-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--azul-oscuro);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommended-price {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--dorado-arena);
+}
+
+@media (max-width: 768px) {
+  .recommended-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Responsive del modal */
