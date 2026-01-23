@@ -338,6 +338,27 @@ function openProductModal(productId = null) {
   productImages = [];
   renderImagesPreviews();
 
+  // Limpiar vista previa
+  const previewContainer = document.getElementById('productPreview');
+  if (previewContainer) {
+    previewContainer.innerHTML = `
+      <div class="product-card product-preview-card">
+        <div class="product-carousel">
+          <div class="product-carousel-slide">
+            <img src="https://via.placeholder.com/300x250?text=Sin+Imagen" alt="Vista previa" class="product-image">
+          </div>
+        </div>
+        <div class="product-content">
+          <h3 class="product-name">Nombre del producto</h3>
+          <p class="product-price">S/ 0.00</p>
+          <button class="btn btn-whatsapp product-consult-btn">
+            📱 Consultar
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   if (productId) {
     title.textContent = 'Editar Producto';
     loadProductData(productId);
@@ -460,7 +481,14 @@ function renderImagesPreviews() {
   const grid = document.getElementById('imagesPreviewGrid');
 
   grid.innerHTML = productImages.map((img, index) => `
-    <div class="image-preview-item has-image">
+    <div class="image-preview-item has-image"
+         draggable="true"
+         data-index="${index}"
+         ondragstart="handleDragStart(event, ${index})"
+         ondragover="handleDragOver(event)"
+         ondrop="handleDrop(event, ${index})"
+         ondragend="handleDragEnd(event)">
+      <div class="image-drag-handle" title="Arrastra para reordenar">⋮⋮</div>
       <img src="${img.url}" alt="Preview ${index + 1}" class="image-preview">
       <button
         type="button"
@@ -493,6 +521,67 @@ function removeImage(index) {
   productImages.splice(index, 1);
   renderImagesPreviews();
   updateProductPreview();
+}
+
+// ========== DRAG AND DROP PARA REORDENAR IMÁGENES ==========
+let draggedIndex = null;
+
+function handleDragStart(event, index) {
+  draggedIndex = index;
+  event.target.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/html', event.target.innerHTML);
+}
+
+function handleDragOver(event) {
+  if (event.preventDefault) {
+    event.preventDefault();
+  }
+  event.dataTransfer.dropEffect = 'move';
+
+  const target = event.target.closest('.image-preview-item.has-image');
+  if (target && draggedIndex !== null) {
+    target.classList.add('drag-over');
+  }
+
+  return false;
+}
+
+function handleDrop(event, dropIndex) {
+  if (event.stopPropagation) {
+    event.stopPropagation();
+  }
+
+  event.preventDefault();
+
+  const target = event.target.closest('.image-preview-item.has-image');
+  if (target) {
+    target.classList.remove('drag-over');
+  }
+
+  if (draggedIndex !== null && draggedIndex !== dropIndex) {
+    // Reordenar array
+    const draggedImage = productImages[draggedIndex];
+    productImages.splice(draggedIndex, 1);
+    productImages.splice(dropIndex, 0, draggedImage);
+
+    // Re-renderizar
+    renderImagesPreviews();
+    updateProductPreview();
+  }
+
+  return false;
+}
+
+function handleDragEnd(event) {
+  event.target.classList.remove('dragging');
+
+  // Limpiar todas las clases drag-over
+  document.querySelectorAll('.image-preview-item').forEach(item => {
+    item.classList.remove('drag-over');
+  });
+
+  draggedIndex = null;
 }
 
 // ========== ACTUALIZAR PREVIEW DEL PRODUCTO ==========

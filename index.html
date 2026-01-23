@@ -79,6 +79,14 @@
     </div>
   </div>
 
+  <!-- ========== BANNER DE BRANDING ========== -->
+  <div class="branding-banner">
+    <div class="container">
+      <h1 class="branding-title">Comercial Liliana</h1>
+      <p class="branding-slogan">"Una familia que completará tu hogar"</p>
+    </div>
+  </div>
+
   <!-- ========== SECCIÓN DE GRUPOS DE CATEGORÍAS ========== -->
   <section class="category-groups">
     <div class="container">
@@ -203,9 +211,41 @@
     <span class="whatsapp-float-icon">💬</span>
   </a>
 
+  <!-- ========== MODAL DE PRODUCTO ========== -->
+  <div id="productModal" class="product-modal" style="display: none;">
+    <div class="product-modal-overlay"></div>
+    <div class="product-modal-content">
+      <button class="product-modal-close" id="closeProductModal" aria-label="Cerrar">✕</button>
+
+      <div class="product-modal-body">
+        <!-- Carrusel de imágenes con zoom -->
+        <div class="product-modal-images">
+          <div class="product-modal-carousel" id="modalCarousel">
+            <!-- Imágenes se cargarán aquí -->
+          </div>
+          <div class="product-modal-thumbnails" id="modalThumbnails">
+            <!-- Miniaturas se cargarán aquí -->
+          </div>
+        </div>
+
+        <!-- Información del producto -->
+        <div class="product-modal-info">
+          <h2 class="product-modal-name" id="modalProductName"></h2>
+          <p class="product-modal-category" id="modalProductCategory"></p>
+          <p class="product-modal-price" id="modalProductPrice"></p>
+          <p class="product-modal-description" id="modalProductDescription"></p>
+          <button class="btn btn-whatsapp product-modal-whatsapp" id="modalWhatsappBtn">
+            💬 Consultar por WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== SCRIPTS ========== -->
   <script src="./js/config.js"></script>
   <script src="./js/supabase-client.js"></script>
+  <script src="./js/product-modal.js"></script>
   <script src="./js/catalog.js"></script>
 
   <script>

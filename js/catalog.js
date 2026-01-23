@@ -343,6 +343,11 @@ function renderProducts(products) {
 
   // Inicializar carruseles de productos
   initProductCarousels();
+
+  // Hacer productos clicables para abrir modal
+  if (typeof makeProductsClickable === 'function') {
+    makeProductsClickable();
+  }
 }
 
 // ========== CREAR TARJETA DE PRODUCTO ==========
