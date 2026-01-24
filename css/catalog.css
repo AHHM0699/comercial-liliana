@@ -1761,4 +1761,26 @@ body {
     height: 40px;
     font-size: 0.9rem;
   }
+
+  /* FORZAR centrado de imágenes en TODOS los carruseles en móvil */
+  .group-carousel-slide,
+  .category-carousel-slide,
+  .category-product-carousel-slide,
+  .product-carousel-slide {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .group-carousel-image,
+  .category-carousel-slide img,
+  .category-product-carousel-slide img,
+  .product-image {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
 }

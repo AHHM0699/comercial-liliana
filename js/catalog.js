@@ -196,7 +196,9 @@ function renderCategoryGroups() {
   }
 
   // Ordenar grupos por campo 'orden'
+  console.log('🔢 Ordenando grupos. Valores de orden:', allGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
   const sortedGroups = [...allGroups].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  console.log('✅ Grupos ordenados:', sortedGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
 
   container.innerHTML = sortedGroups.map(group => {
     return `
