@@ -921,7 +921,7 @@ async function loadGroups() {
 
   try {
     const { data, error } = await supabaseClient
-      .from('grupos_categorias')
+      .from('grupos')
       .select('*')
       .order('orden', { ascending: true });
 
@@ -1042,7 +1042,7 @@ async function saveGroup() {
     if (currentEditingGroup) {
       // Actualizar grupo existente
       const { data, error } = await supabaseClient
-        .from('grupos_categorias')
+        .from('grupos')
         .update(groupData)
         .eq('id', currentEditingGroup.id)
         .select();
@@ -1052,7 +1052,7 @@ async function saveGroup() {
     } else {
       // Crear nuevo grupo
       const { data, error } = await supabaseClient
-        .from('grupos_categorias')
+        .from('grupos')
         .insert([groupData])
         .select();
 
@@ -1098,7 +1098,7 @@ async function deleteGroup(groupId) {
 
   try {
     const { error } = await supabaseClient
-      .from('grupos_categorias')
+      .from('grupos')
       .delete()
       .eq('id', groupId);
 
