@@ -928,6 +928,8 @@ async function loadGroups() {
     if (error) throw error;
 
     allGroups = data || [];
+    console.log('📋 Grupos cargados:', allGroups);
+    console.table(allGroups);
     renderGroupsGrid();
   } catch (error) {
     console.error('Error al cargar grupos:', error);
@@ -958,7 +960,7 @@ function renderGroupsGrid() {
       </div>
       <div class="category-info">
         <span class="category-badge" style="background-color: ${group.color}20; color: ${group.color}">
-          ${group.clave}
+          ${group.grupo}
         </span>
         <span class="category-order">Orden: ${group.orden}</span>
       </div>
@@ -975,6 +977,8 @@ function renderGroupsGrid() {
 }
 
 function openGroupModal(groupId = null) {
+  console.log('🚪 openGroupModal llamado con groupId:', groupId, 'Tipo:', typeof groupId);
+
   const modal = document.getElementById('groupModal');
   const title = document.getElementById('groupModalTitle');
   const form = document.getElementById('groupForm');
@@ -982,9 +986,11 @@ function openGroupModal(groupId = null) {
   form.reset();
 
   if (groupId) {
+    console.log('✏️ Modo EDICIÓN');
     title.textContent = 'Editar Grupo';
     loadGroupData(groupId);
   } else {
+    console.log('➕ Modo NUEVO');
     title.textContent = 'Nuevo Grupo';
     currentEditingGroup = null;
     // Deshabilitar edición de clave en nuevo grupo
@@ -1000,13 +1006,18 @@ function closeGroupModal() {
 }
 
 async function loadGroupData(groupId) {
+  console.log('🔍 Buscando grupo con ID:', groupId);
+  console.log('📦 Grupos disponibles:', allGroups);
+
   const group = allGroups.find(g => g.id === groupId);
+
+  console.log('✅ Grupo encontrado:', group);
 
   if (group) {
     currentEditingGroup = group;
 
     document.getElementById('groupId').value = group.id;
-    document.getElementById('groupKey').value = group.clave;
+    document.getElementById('groupKey').value = group.grupo || '';
     document.getElementById('groupName').value = group.nombre;
     document.getElementById('groupIcon').value = group.icono;
     document.getElementById('groupColor').value = group.color;
@@ -1014,6 +1025,17 @@ async function loadGroupData(groupId) {
 
     // Deshabilitar edición de clave en edición
     document.getElementById('groupKey').disabled = true;
+
+    console.log('📝 Datos cargados en formulario:', {
+      id: group.id,
+      grupo: group.grupo,
+      nombre: group.nombre,
+      icono: group.icono,
+      color: group.color,
+      orden: group.orden
+    });
+  } else {
+    console.error('❌ No se encontró el grupo con ID:', groupId);
   }
 }
 
@@ -1029,7 +1051,7 @@ async function saveGroup() {
 
   try {
     const groupData = {
-      clave: document.getElementById('groupKey').value.trim().toLowerCase(),
+      grupo: document.getElementById('groupKey').value.trim().toLowerCase(),
       nombre: document.getElementById('groupName').value.trim(),
       icono: document.getElementById('groupIcon').value.trim(),
       color: document.getElementById('groupColor').value.trim(),
@@ -1067,7 +1089,7 @@ async function saveGroup() {
   } catch (error) {
     console.error('Error al guardar grupo:', error);
     if (error.code === '23505') {
-      alert('❌ Ya existe un grupo con esa clave');
+      alert('❌ Ya existe un grupo con ese identificador');
     } else {
       alert('❌ Error al guardar grupo: ' + error.message);
     }
@@ -1077,6 +1099,7 @@ async function saveGroup() {
 }
 
 function editGroup(groupId) {
+  console.log('🖊️ editGroup llamado con ID:', groupId, 'Tipo:', typeof groupId);
   openGroupModal(groupId);
 }
 
