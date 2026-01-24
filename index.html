@@ -29,7 +29,6 @@
   <!-- Estilos -->
   <link rel="stylesheet" href="./css/styles.css">
   <link rel="stylesheet" href="./css/catalog.css">
-  <link rel="stylesheet" href="./css/views.css">
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -75,76 +74,16 @@
     </div>
   </div>
 
-  <!-- ========== APLICACIÓN SPA - VISTAS ========== -->
-  <main id="app">
+  <!-- ========== SECCIÓN DE GRUPOS DE CATEGORÍAS ========== -->
+  <section class="category-groups">
+    <div class="container">
+      <h2 class="category-groups-title">Nuestras Categorías</h2>
 
-    <!-- ========== VISTA HOME ========== -->
-    <section id="view-home" class="view view-active">
-      <div class="view-content">
-        <div class="container">
-          <h2 class="view-title">Nuestras Categorías</h2>
-          <div class="groups-grid" id="home-groups-grid">
-            <!-- Se llenará dinámicamente con JavaScript -->
-          </div>
-        </div>
+      <div class="groups-grid" id="categoryGroupsGrid">
+        <!-- Se llenará dinámicamente con JavaScript -->
       </div>
-    </section>
-
-    <!-- ========== VISTA GRUPO ========== -->
-    <section id="view-group" class="view" hidden>
-      <div class="view-header">
-        <div class="container">
-          <button class="view-back-btn" id="group-back-btn" aria-label="Volver">
-            ← Volver
-          </button>
-          <h2 class="view-title" id="group-view-title">Categorías</h2>
-        </div>
-      </div>
-      <div class="view-content">
-        <div class="container">
-          <div class="categories-grid" id="group-categories-grid">
-            <!-- Se llenará dinámicamente con JavaScript -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== VISTA CATEGORÍA ========== -->
-    <section id="view-category" class="view" hidden>
-      <div class="view-header">
-        <div class="container">
-          <button class="view-back-btn" id="category-back-btn" aria-label="Volver">
-            ← Volver
-          </button>
-          <h2 class="view-title" id="category-view-title">Productos</h2>
-        </div>
-      </div>
-      <div class="view-content">
-        <div class="container">
-          <div class="category-products-grid" id="category-products-grid">
-            <!-- Se llenará dinámicamente con JavaScript -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== VISTA PRODUCTO ========== -->
-    <section id="view-product" class="view" hidden>
-      <div class="view-header">
-        <div class="container">
-          <button class="view-back-btn" id="product-back-btn" aria-label="Volver">
-            ← Volver
-          </button>
-        </div>
-      </div>
-      <div class="view-content">
-        <div id="product-view-container">
-          <!-- Se llenará dinámicamente con JavaScript -->
-        </div>
-      </div>
-    </section>
-
-  </main>
+    </div>
+  </section>
 
 
   <!-- ========== SECCIÓN CTA ========== -->
@@ -220,12 +159,99 @@
     </div>
   </div>
 
+  <!-- ========== MODAL DE GRUPO ========== -->
+  <div id="groupModal" class="group-modal" style="display: none;">
+    <div class="group-modal-overlay"></div>
+    <div class="group-modal-content">
+      <button class="modal-close-btn" id="closeGroupModal" aria-label="Cerrar">✕</button>
+
+      <div class="group-modal-header">
+        <h2 class="group-modal-title" id="groupModalTitle">Categorías</h2>
+      </div>
+
+      <div class="group-modal-body">
+        <div class="categories-grid" id="categoriesModalGrid">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE CATEGORÍA ========== -->
+  <div id="categoryModal" class="category-modal" style="display: none;">
+    <div class="category-modal-overlay"></div>
+    <div class="category-modal-content">
+      <button class="modal-close-btn" id="closeCategoryModal" aria-label="Cerrar">✕</button>
+      <button class="modal-back-btn" id="backToCategoryFromProducts" aria-label="Volver">← Volver</button>
+
+      <div class="category-modal-header">
+        <h2 class="category-modal-title" id="categoryModalTitle">Productos</h2>
+      </div>
+
+      <div class="category-modal-body">
+        <div class="category-products-grid" id="categoryProductsGrid">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE PRODUCTO ========== -->
+  <div id="productModal" class="product-modal" style="display: none;">
+    <div class="product-modal-overlay"></div>
+    <div class="product-modal-content">
+      <button class="product-modal-close" id="closeProductModal" aria-label="Cerrar">✕</button>
+      <button class="modal-back-btn" id="backToProducts" aria-label="Volver" style="display: none;">← Volver</button>
+
+      <div class="product-modal-body">
+        <!-- Carrusel de imágenes con zoom -->
+        <div class="product-modal-images">
+          <div class="product-modal-carousel" id="modalCarousel">
+            <!-- Imágenes se cargarán aquí -->
+          </div>
+          <div class="product-modal-thumbnails" id="modalThumbnails">
+            <!-- Miniaturas se cargarán aquí -->
+          </div>
+        </div>
+
+        <!-- Información del producto -->
+        <div class="product-modal-info">
+          <h2 class="product-modal-name" id="modalProductName"></h2>
+          <p class="product-modal-category" id="modalProductCategory"></p>
+          <p class="product-modal-price" id="modalProductPrice"></p>
+          <p class="product-modal-description" id="modalProductDescription"></p>
+
+          <!-- Productos Recomendados -->
+          <div class="recommended-products" id="recommendedProducts">
+            <h3 class="recommended-title">Productos Relacionados</h3>
+            <div class="recommended-grid" id="recommendedGrid">
+              <!-- Se llenarán dinámicamente -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón flotante de WhatsApp dentro del modal -->
+      <button
+        id="modalWhatsappFloat"
+        class="modal-whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+      >
+        <span class="modal-whatsapp-float-icon">💬</span>
+      </button>
+
+      <!-- Mensajes flotantes dentro del modal -->
+      <div id="modalWhatsappMessages" class="modal-whatsapp-messages" style="display: none;">
+        <div class="modal-whatsapp-message-bubble">
+          <p id="modalWhatsappText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ========== SCRIPTS ========== -->
   <script src="./js/config.js"></script>
   <script src="./js/supabase-client.js"></script>
-  <script src="./js/router.js"></script>
-  <script src="./js/views.js"></script>
   <script src="./js/product-modal.js"></script>
   <script src="./js/catalog.js"></script>
 
@@ -245,9 +271,6 @@
           });
       });
     }
-
-    // El router se inicializará automáticamente desde catalog.js
-    // después de que se carguen los datos de Supabase
   </script>
 
 </body>
