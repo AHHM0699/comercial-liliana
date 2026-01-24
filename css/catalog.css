@@ -1418,6 +1418,8 @@ body {
 
 /* Header interno del modal */
 .modal-brand {
+  position: sticky;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1426,6 +1428,7 @@ body {
   background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-acero));
   border-radius: var(--radio-md) var(--radio-md) 0 0;
   margin: calc(-1 * var(--espacio-xl)) calc(-1 * var(--espacio-xl)) var(--espacio-lg);
+  z-index: 10;
 }
 
 .modal-brand-logo {

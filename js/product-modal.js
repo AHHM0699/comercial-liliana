@@ -603,29 +603,30 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   const precio = parseFloat(product.precio);
 
-  // Verificar si el producto tiene mensajes personalizados
-  let messages;
+  // Seleccionar mensajes base según el precio
+  let baseMessages;
   let messageType;
+
+  if (precio >= PRICE_HIGH) {
+    baseMessages = modalMessagesHigh;
+    messageType = 'modalHigh';
+  } else if (precio >= PRICE_MID) {
+    baseMessages = modalMessagesMid;
+    messageType = 'modalMid';
+  } else {
+    baseMessages = modalMessagesLow;
+    messageType = 'modalLow';
+  }
+
+  // Combinar mensajes base con mensajes personalizados del producto
+  let messages = [...baseMessages]; // Copiar mensajes base
   let useCustomMessages = false;
 
   if (product.mensajes_personalizados && Array.isArray(product.mensajes_personalizados) && product.mensajes_personalizados.length > 0) {
-    // Usar mensajes personalizados del producto
-    messages = product.mensajes_personalizados;
-    messageType = 'custom';
+    // COMPLEMENTAR con mensajes personalizados (no reemplazar)
+    messages = [...baseMessages, ...product.mensajes_personalizados];
     useCustomMessages = true;
-    console.log('📝 Usando mensajes personalizados del producto:', messages);
-  } else {
-    // Seleccionar mensajes según el precio
-    if (precio >= PRICE_HIGH) {
-      messages = modalMessagesHigh;
-      messageType = 'modalHigh';
-    } else if (precio >= PRICE_MID) {
-      messages = modalMessagesMid;
-      messageType = 'modalMid';
-    } else {
-      messages = modalMessagesLow;
-      messageType = 'modalLow';
-    }
+    console.log('📝 Combinando mensajes base (' + baseMessages.length + ') con personalizados (' + product.mensajes_personalizados.length + '). Total:', messages.length);
   }
 
   let messageTimeouts = []; // Array para guardar todos los timeouts

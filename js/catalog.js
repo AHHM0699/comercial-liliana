@@ -1149,6 +1149,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('closeGroupModal')?.addEventListener('click', closeGroupModal);
   document.querySelector('#groupModal .group-modal-overlay')?.addEventListener('click', closeGroupModal);
 
+  // Botón volver desde grupo a home (mismo comportamiento que cerrar)
+  document.getElementById('backToHomeFromGroup')?.addEventListener('click', closeGroupModal);
+
   // Botón cerrar modal de categoría - CERRAR TODO
   document.getElementById('closeCategoryModal')?.addEventListener('click', () => {
     closeCategoryModal();

@@ -136,7 +136,7 @@ async function getGroups() {
     if (error) throw error;
 
     console.log(`✅ ${data.length} grupos obtenidos`);
-    console.log('📊 Valores de orden desde Supabase:', data.map(g => ({
+    console.table(data.map(g => ({
       id: g.id,
       nombre: g.nombre,
       orden: g.orden,
