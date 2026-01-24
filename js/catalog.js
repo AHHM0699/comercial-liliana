@@ -39,9 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initWhatsAppButtons();
   initGlobalCarouselListeners();
 
-  // Cargar datos
-  loadCategories();
-  // loadProducts(); // Ya no se cargan productos en la pantalla principal - usar modales
+  // Cargar datos y luego inicializar router
+  loadCatalogData();
 });
 
 // ========== BANNER PROMOCIONAL ANIMADO ==========
@@ -164,7 +163,7 @@ function initGlobalCarouselListeners() {
 }
 
 // ========== CARGAR GRUPOS Y CATEGORÍAS ==========
-async function loadCategories() {
+async function loadCatalogData() {
   // Cargar grupos primero
   const groupsResult = await getGroups();
   if (groupsResult.success) {
@@ -180,52 +179,14 @@ async function loadCategories() {
   if (result.success) {
     allCategories = result.data;
     console.log('✅ Categorías cargadas:', allCategories);
-    renderCategoryGroups();
   } else {
     console.error('Error al cargar categorías:', result.error);
   }
+
+  // Los datos ya están cargados, el router se encargará de renderizar
+  console.log('✅ Datos del catálogo listos');
 }
 
-// ========== RENDERIZAR GRUPOS DE CATEGORÍAS ==========
-function renderCategoryGroups() {
-  const container = document.getElementById('categoryGroupsGrid');
-
-  if (!allGroups || allGroups.length === 0) {
-    container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay grupos disponibles</p>';
-    return;
-  }
-
-  // Randomizar el orden de los grupos
-  const shuffledGroups = [...allGroups].sort(() => Math.random() - 0.5);
-
-  container.innerHTML = shuffledGroups.map(group => {
-    return `
-      <div class="group-card" data-group="${group.id}">
-        <div class="group-carousel" data-carousel-group="${group.id}">
-          <div class="group-carousel-track" id="groupCarousel-${group.id}">
-            <!-- Se llenará con imágenes aleatorias -->
-          </div>
-        </div>
-        <div class="group-card-content">
-          <div class="group-icon">${group.icono || '📦'}</div>
-          <h3 class="group-name">${group.nombre}</h3>
-          <p class="group-count" id="groupCount-${group.id}">Explorando...</p>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Agregar event listeners
-  document.querySelectorAll('.group-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const groupId = parseInt(card.dataset.group);
-      openGroupModal(groupId);
-    });
-  });
-
-  // Cargar imágenes aleatorias para cada grupo
-  loadGroupCarousels();
-}
 
 // ========== CARGAR CARRUSELES DE GRUPOS ==========
 async function loadGroupCarousels() {
@@ -822,135 +783,10 @@ window.addEventListener('beforeunload', () => {
 });
 
 // ========================================================================
-// NUEVO SISTEMA DE MODALES: GRUPO → CATEGORÍA → PRODUCTO
+// FUNCIONES DE CARRUSEL PARA CATEGORÍAS (usadas por views.js)
 // ========================================================================
 
-let currentModalGroup = null;
-let currentModalCategory = null;
 const categoryCarouselIntervals = new Map();
-
-// ========== ABRIR MODAL DE GRUPO ==========
-async function openGroupModal(groupId) {
-  currentModalGroup = groupId;
-  const modal = document.getElementById('groupModal');
-  const title = document.getElementById('groupModalTitle');
-  const grid = document.getElementById('categoriesModalGrid');
-
-  console.log('🔍 Abriendo modal de grupo ID:', groupId);
-
-  // Buscar grupo por ID
-  const group = allGroups.find(g => g.id === groupId);
-  if (!group) {
-    console.error('❌ Grupo no encontrado:', groupId);
-    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">Grupo no encontrado</p>';
-    return;
-  }
-
-  console.log('✅ Grupo encontrado:', group);
-
-  // Actualizar título
-  title.textContent = `${group.icono || '📦'} ${group.nombre}`;
-
-  // Obtener categorías del grupo - filtrar por grupo_id
-  const categoriesOfGroup = allCategories.filter(cat => cat.grupo_id === groupId);
-
-  console.log('📂 Categorías del grupo:', categoriesOfGroup.length, categoriesOfGroup);
-
-  if (categoriesOfGroup.length === 0) {
-    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay categorías en este grupo</p>';
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    return;
-  }
-
-  // Randomizar el orden de las categorías
-  const shuffledCategories = categoriesOfGroup.sort(() => Math.random() - 0.5);
-
-  // Renderizar categorías con carruseles
-  grid.innerHTML = shuffledCategories.map(category => {
-    const carouselId = `cat-carousel-${category.id}`;
-    return `
-      <div class="category-card" data-category-id="${category.id}">
-        <div class="category-carousel-container">
-          <div class="category-carousel-track" id="${carouselId}">
-            <div class="category-carousel-slide">
-              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gris-medio);">
-                Cargando...
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="category-card-content">
-          <h3 class="category-card-name">${category.nombre}</h3>
-          <p class="category-card-count" id="cat-count-${category.id}">Explorando...</p>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Mostrar modal
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-
-  // Cargar productos aleatorios para cada categoría
-  for (const category of shuffledCategories) {
-    loadCategoryCarousel(category.id);
-  }
-
-  // Event listeners para categorías
-  document.querySelectorAll('.category-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const categoryId = card.dataset.categoryId;
-      openCategoryModal(categoryId);
-    });
-  });
-}
-
-// ========== CARGAR CARRUSEL DE UNA CATEGORÍA EN EL MODAL DE GRUPO ==========
-async function loadCategoryCarousel(categoryId) {
-  const result = await getRandomProductsByCategory(categoryId, 5);
-
-  if (!result.success || result.data.length === 0) {
-    const track = document.getElementById(`cat-carousel-${categoryId}`);
-    if (track) {
-      track.innerHTML = `
-        <div class="category-carousel-slide">
-          <img src="https://via.placeholder.com/300x250?text=Sin+Productos" alt="Sin productos">
-        </div>
-      `;
-    }
-    return;
-  }
-
-  const products = result.data;
-  const track = document.getElementById(`cat-carousel-${categoryId}`);
-
-  if (!track) return;
-
-  // Renderizar slides
-  track.innerHTML = products.map(product => {
-    const imageUrl = product.imagenes && product.imagenes.length > 0
-      ? product.imagenes[0]
-      : 'https://via.placeholder.com/300x250?text=Sin+Imagen';
-
-    return `
-      <div class="category-carousel-slide">
-        <img src="${imageUrl}" alt="${product.nombre}" loading="lazy">
-      </div>
-    `;
-  }).join('');
-
-  // Actualizar contador
-  const countElement = document.getElementById(`cat-count-${categoryId}`);
-  if (countElement) {
-    countElement.textContent = `${products.length}+ productos`;
-  }
-
-  // Iniciar autoplay si hay más de 1 producto
-  if (products.length > 1) {
-    startCategoryCarouselAutoplay(categoryId, products.length);
-  }
-}
 
 // ========== AUTOPLAY PARA CARRUSELES DE CATEGORÍAS ==========
 function startCategoryCarouselAutoplay(categoryId, totalSlides) {
@@ -972,121 +808,7 @@ function startCategoryCarouselAutoplay(categoryId, totalSlides) {
   categoryCarouselIntervals.set(categoryId, interval);
 }
 
-// ========== ABRIR MODAL DE CATEGORÍA ==========
-async function openCategoryModal(categoryId) {
-  currentModalCategory = categoryId;
-  const modal = document.getElementById('categoryModal');
-  const title = document.getElementById('categoryModalTitle');
-  const grid = document.getElementById('categoryProductsGrid');
-
-  // Obtener nombre de la categoría
-  const category = allCategories.find(cat => cat.id === parseInt(categoryId));
-  if (category) {
-    title.textContent = category.nombre;
-  }
-
-  // Mostrar loading
-  grid.innerHTML = '<div style="text-align: center; padding: 3rem;"><div class="spinner"></div><p>Cargando productos...</p></div>';
-
-  // Mostrar modal
-  modal.style.display = 'flex';
-
-  // Obtener todos los productos de la categoría
-  const { data: products, error } = await supabaseClient
-    .from('productos')
-    .select('*')
-    .eq('categoria_id', categoryId)
-    .eq('activo', true);
-
-  if (error || !products || products.length === 0) {
-    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay productos en esta categoría</p>';
-    return;
-  }
-
-  // Ordenar por precio (menor a mayor)
-  products.sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
-
-  // Renderizar productos
-  grid.innerHTML = products.map(product => {
-    const images = product.imagenes || [];
-    const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
-    let discountPercentage = 0;
-
-    if (hasDiscount) {
-      const original = parseFloat(product.precio_original);
-      const current = parseFloat(product.precio);
-      discountPercentage = Math.round(((original - current) / original) * 100);
-    }
-
-    const carouselId = `prod-carousel-${product.id}`;
-
-    return `
-      <div class="category-product-card" data-product-id="${product.id}">
-        <div class="category-product-carousel">
-          <div class="category-product-carousel-track" id="${carouselId}">
-            ${images.length > 0
-              ? images.map((img, index) => `
-                  <div class="category-product-carousel-slide">
-                    <img src="${img}" alt="${product.nombre} - ${index + 1}" loading="lazy">
-                  </div>
-                `).join('')
-              : `
-                  <div class="category-product-carousel-slide">
-                    <img src="https://via.placeholder.com/300x400?text=Sin+Imagen" alt="${product.nombre}">
-                  </div>
-                `
-            }
-          </div>
-          ${product.es_oferta || hasDiscount ? `
-            <span class="category-product-badge">
-              ${hasDiscount ? `¡${discountPercentage}% OFF!` : '¡OFERTA!'}
-            </span>
-          ` : ''}
-        </div>
-        <div class="category-product-info">
-          <h3 class="category-product-name">${product.nombre}</h3>
-          ${hasDiscount ? `
-            <p class="category-product-price-original">${formatPrice(product.precio_original)}</p>
-            <p class="category-product-price-discount">${formatPrice(product.precio)}</p>
-          ` : `
-            <p class="category-product-price">${formatPrice(product.precio)}</p>
-          `}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Iniciar autoplay para productos con múltiples imágenes
-  products.forEach(product => {
-    const images = product.imagenes || [];
-    if (images.length > 1) {
-      startProductCarouselInCategory(product.id, images.length);
-    }
-  });
-
-  // Event listeners para productos
-  document.querySelectorAll('.category-product-card').forEach(card => {
-    card.addEventListener('click', async () => {
-      const productId = card.dataset.productId;
-
-      // Obtener producto completo con categoría
-      const { data: product, error } = await supabaseClient
-        .from('productos')
-        .select(`
-          *,
-          categoria:categorias(*)
-        `)
-        .eq('id', productId)
-        .single();
-
-      if (!error && product) {
-        openProductModal(product);
-      }
-    });
-  });
-}
-
-// ========== AUTOPLAY PARA CARRUSELES DE PRODUCTOS EN MODAL DE CATEGORÍA ==========
+// ========== AUTOPLAY PARA CARRUSELES DE PRODUCTOS EN VISTA DE CATEGORÍA ==========
 function startProductCarouselInCategory(productId, totalSlides) {
   const carouselId = `prod-carousel-${productId}`;
   let currentSlide = 0;
@@ -1103,96 +825,6 @@ function startProductCarouselInCategory(productId, totalSlides) {
   categoryCarouselIntervals.set(carouselId, interval);
 }
 
-// ========== CERRAR MODAL DE GRUPO ==========
-function closeGroupModal() {
-  const modal = document.getElementById('groupModal');
-  modal.style.display = 'none';
-  document.body.style.overflow = '';
-  currentModalGroup = null;
-
-  // Limpiar todos los intervals de carruseles de categorías
-  categoryCarouselIntervals.forEach(interval => clearInterval(interval));
-  categoryCarouselIntervals.clear();
-}
-
-// ========== CERRAR MODAL DE CATEGORÍA ==========
-function closeCategoryModal() {
-  const modal = document.getElementById('categoryModal');
-  modal.style.display = 'none';
-  currentModalCategory = null;
-
-  // Limpiar intervals de productos
-  categoryCarouselIntervals.forEach(interval => clearInterval(interval));
-  categoryCarouselIntervals.clear();
-
-  // Restaurar overflow solo si no hay otro modal abierto
-  const groupModal = document.getElementById('groupModal');
-  if (groupModal.style.display === 'none') {
-    document.body.style.overflow = '';
-  }
-}
-
-// ========== VOLVER AL MODAL DE CATEGORÍA DESDE PRODUCTO ==========
-function backToCategoryModal() {
-  const productModal = document.getElementById('productModal');
-  const categoryModal = document.getElementById('categoryModal');
-
-  productModal.style.display = 'none';
-  categoryModal.style.display = 'flex';
-}
-
-// ========== EVENT LISTENERS PARA BOTONES DE NAVEGACIÓN ==========
-document.addEventListener('DOMContentLoaded', () => {
-  // Botón cerrar modal de grupo
-  document.getElementById('closeGroupModal')?.addEventListener('click', closeGroupModal);
-  document.querySelector('#groupModal .group-modal-overlay')?.addEventListener('click', closeGroupModal);
-
-  // Botón cerrar modal de categoría
-  document.getElementById('closeCategoryModal')?.addEventListener('click', () => {
-    closeCategoryModal();
-    // Si el modal de grupo estaba abierto, mostrarlo de nuevo
-    if (currentModalGroup) {
-      const groupModal = document.getElementById('groupModal');
-      groupModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-  });
-
-  document.querySelector('#categoryModal .category-modal-overlay')?.addEventListener('click', () => {
-    closeCategoryModal();
-    if (currentModalGroup) {
-      const groupModal = document.getElementById('groupModal');
-      groupModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-  });
-
-  // Botón volver desde categoría a grupo
-  document.getElementById('backToCategoryFromProducts')?.addEventListener('click', () => {
-    closeCategoryModal();
-    if (currentModalGroup) {
-      const groupModal = document.getElementById('groupModal');
-      groupModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-  });
-
-  // Botón volver desde producto a categoría
-  document.getElementById('backToProducts')?.addEventListener('click', backToCategoryModal);
-
-  // Modificar el close del modal de producto para manejar navegación
-  const originalCloseProductModal = window.closeProductModal;
-  window.closeProductModal = function() {
-    originalCloseProductModal();
-
-    // Si venimos del modal de categoría, mostrarlo
-    if (currentModalCategory) {
-      const backBtn = document.getElementById('backToProducts');
-      backBtn.style.display = 'flex';
-      openCategoryModal(currentModalCategory);
-    } else {
-      const backBtn = document.getElementById('backToProducts');
-      backBtn.style.display = 'none';
-    }
-  };
-});
+// Exportar funciones globalmente para uso en views.js
+window.startCategoryCarouselAutoplay = startCategoryCarouselAutoplay;
+window.startProductCarouselInCategory = startProductCarouselInCategory;

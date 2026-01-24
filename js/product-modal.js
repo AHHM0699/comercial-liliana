@@ -1,6 +1,7 @@
 /**
- * MODAL DE PRODUCTO - COMERCIAL LILIANA
+ * MODAL/VISTA DE PRODUCTO - COMERCIAL LILIANA
  * Maneja la visualización completa de productos con zoom de imágenes
+ * Soporta tanto modales (legacy) como vistas (SPA)
  */
 
 let currentModalProduct = null;
@@ -9,6 +10,11 @@ let isZoomed = false;
 let zoomX = 0;
 let zoomY = 0;
 let modalCarouselAutoplayInterval = null;
+
+// Variables para vista de producto (SPA)
+let currentViewProduct = null;
+let currentViewImageIndex = 0;
+let viewCarouselAutoplayInterval = null;
 
 // ========== ABRIR MODAL ==========
 function openProductModal(product) {
@@ -117,8 +123,8 @@ function renderModalCarousel(images) {
   initModalCarouselEvents(images);
   initZoomEvents();
 
-  // Iniciar autoplay
-  startModalCarouselAutoplay(images);
+  // Autoplay deshabilitado - las imágenes se cambian manualmente
+  // startModalCarouselAutoplay(images);
 }
 
 // ========== INICIALIZAR EVENTOS DEL CARRUSEL ==========
@@ -716,12 +722,367 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   // Limpiar timeouts cuando se cierra el modal
   const closeBtn = document.getElementById('closeProductModal');
-  const originalOnClick = closeBtn.onclick;
-  closeBtn.onclick = () => {
-    // Limpiar todos los timeouts
-    messageTimeouts.forEach(timeout => clearTimeout(timeout));
-    messageTimeouts = [];
-    if (originalOnClick) originalOnClick();
-    else closeProductModal();
-  };
+  if (closeBtn) {
+    const originalOnClick = closeBtn.onclick;
+    closeBtn.onclick = () => {
+      // Limpiar todos los timeouts
+      messageTimeouts.forEach(timeout => clearTimeout(timeout));
+      messageTimeouts = [];
+      if (originalOnClick) originalOnClick();
+      else closeProductModal();
+    };
+  }
 }
+
+// ========================================================================
+// RENDERIZADO EN VISTA (SPA)
+// ========================================================================
+
+/**
+ * Renderiza el producto en la vista de producto (no modal)
+ * Esta función es llamada por views.js para mostrar el producto en una vista completa
+ */
+function renderProductDetails(product) {
+  currentViewProduct = product;
+  currentViewImageIndex = 0;
+
+  const container = document.getElementById('product-view-container');
+  if (!container) {
+    console.error('❌ Contenedor product-view-container no encontrado');
+    return;
+  }
+
+  // Calcular descuento si existe
+  const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
+  let discountPercentage = 0;
+
+  if (hasDiscount) {
+    const original = parseFloat(product.precio_original);
+    const current = parseFloat(product.precio);
+    discountPercentage = Math.round(((original - current) / original) * 100);
+  }
+
+  const images = product.imagenes || [];
+  const precio = parseFloat(product.precio);
+
+  // Renderizar contenido del producto
+  container.innerHTML = `
+    <div class="product-view-layout">
+      <!-- Carrusel de imágenes -->
+      <div class="product-view-images">
+        <div class="product-view-carousel" id="viewCarousel">
+          ${images.length > 0 ? `
+            <img src="${images[0]}"
+                 alt="${product.nombre}"
+                 class="product-view-main-image"
+                 id="viewMainImage">
+            ${images.length > 1 ? `
+              <button class="product-view-carousel-prev" id="viewPrevBtn">◀</button>
+              <button class="product-view-carousel-next" id="viewNextBtn">▶</button>
+            ` : ''}
+          ` : `
+            <img src="https://via.placeholder.com/600x800?text=Sin+Imagen"
+                 alt="Sin imagen"
+                 class="product-view-main-image">
+          `}
+        </div>
+
+        ${images.length > 1 ? `
+          <div class="product-view-thumbnails" id="viewThumbnails">
+            ${images.map((img, index) => `
+              <div class="product-view-thumbnail ${index === 0 ? 'active' : ''}" data-index="${index}">
+                <img src="${img}" alt="Miniatura ${index + 1}">
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Información del producto -->
+      <div class="product-view-info">
+        <h2 class="product-view-name">${product.nombre}</h2>
+        <p class="product-view-category">${product.categoria?.nombre || 'Sin categoría'}</p>
+
+        <div class="product-view-price-container">
+          ${hasDiscount ? `
+            <p class="product-view-price-original">${formatPrice(product.precio_original)}</p>
+            <p class="product-view-price-discount">${formatPrice(product.precio)}</p>
+            <p class="product-view-discount-badge">¡${discountPercentage}% de descuento! 💬 Consulta por el precio final</p>
+          ` : `
+            <p class="product-view-price">${formatPrice(product.precio)}</p>
+          `}
+        </div>
+
+        <p class="product-view-description">${product.descripcion || 'Sin descripción disponible'}</p>
+
+        <button class="btn btn-whatsapp product-view-whatsapp-btn" id="viewWhatsappBtn">
+          📱 Consultar por WhatsApp
+        </button>
+
+        <!-- Productos Recomendados -->
+        <div class="product-view-recommended" id="viewRecommended">
+          <h3 class="product-view-recommended-title">Productos Relacionados</h3>
+          <div class="product-view-recommended-grid" id="viewRecommendedGrid">
+            <!-- Se llenarán dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Inicializar eventos del carrusel
+  if (images.length > 1) {
+    initViewCarouselEvents(images);
+  }
+
+  // Inicializar zoom
+  initViewZoomEvents();
+
+  // Configurar botón de WhatsApp
+  const whatsappBtn = document.getElementById('viewWhatsappBtn');
+  if (whatsappBtn) {
+    whatsappBtn.onclick = () => {
+      const currentImageUrl = images[currentViewImageIndex];
+      let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
+
+      if (hasDiscount) {
+        message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
+      } else {
+        message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+      }
+
+      // Mencionar beneficios según precio
+      if (precio >= PRICE_HIGH) {
+        message += `\n\n🎁 ¿Incluye el obsequio y el envío gratuito al Bajo Piura?`;
+      } else if (precio >= PRICE_MID) {
+        message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
+      } else {
+        message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;
+      }
+
+      if (currentImageUrl) {
+        message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
+      }
+
+      openWhatsApp(message);
+    };
+  }
+
+  // Cargar productos recomendados
+  loadViewRecommendedProducts(product);
+}
+
+// ========== EVENTOS DEL CARRUSEL EN VISTA ==========
+function initViewCarouselEvents(images) {
+  const prevBtn = document.getElementById('viewPrevBtn');
+  const nextBtn = document.getElementById('viewNextBtn');
+  const thumbnails = document.querySelectorAll('.product-view-thumbnail');
+
+  // Botones de navegación
+  prevBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigateViewCarousel(-1, images);
+  });
+
+  nextBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigateViewCarousel(1, images);
+  });
+
+  // Miniaturas
+  thumbnails.forEach((thumb, index) => {
+    thumb.addEventListener('click', () => {
+      currentViewImageIndex = index;
+      updateViewImage(images);
+    });
+  });
+
+  // Teclado
+  document.addEventListener('keydown', (e) => {
+    const viewActive = document.getElementById('view-product')?.classList.contains('view-active');
+    if (!viewActive) return;
+
+    if (e.key === 'ArrowLeft') {
+      navigateViewCarousel(-1, images);
+    } else if (e.key === 'ArrowRight') {
+      navigateViewCarousel(1, images);
+    }
+  });
+}
+
+// ========== NAVEGAR CARRUSEL EN VISTA ==========
+function navigateViewCarousel(direction, images) {
+  currentViewImageIndex += direction;
+
+  if (currentViewImageIndex < 0) {
+    currentViewImageIndex = images.length - 1;
+  } else if (currentViewImageIndex >= images.length) {
+    currentViewImageIndex = 0;
+  }
+
+  updateViewImage(images);
+}
+
+// ========== ACTUALIZAR IMAGEN EN VISTA ==========
+function updateViewImage(images) {
+  const mainImage = document.getElementById('viewMainImage');
+  const thumbnails = document.querySelectorAll('.product-view-thumbnail');
+
+  if (mainImage) {
+    mainImage.src = images[currentViewImageIndex];
+  }
+
+  // Actualizar miniaturas activas
+  thumbnails.forEach((thumb, index) => {
+    thumb.classList.toggle('active', index === currentViewImageIndex);
+  });
+}
+
+// ========== ZOOM EN VISTA ==========
+function initViewZoomEvents() {
+  const carousel = document.getElementById('viewCarousel');
+  const mainImage = document.getElementById('viewMainImage');
+
+  if (!mainImage || !carousel) return;
+
+  let isViewZoomed = false;
+
+  carousel.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+
+    if (!isViewZoomed) {
+      mainImage.classList.add('zoomed');
+      carousel.classList.add('zoomed');
+      isViewZoomed = true;
+    } else {
+      mainImage.classList.remove('zoomed');
+      carousel.classList.remove('zoomed');
+      mainImage.style.transformOrigin = 'center';
+      isViewZoomed = false;
+    }
+  });
+
+  // Zoom con movimiento del mouse
+  carousel.addEventListener('mousemove', (e) => {
+    if (!isViewZoomed) return;
+
+    const rect = carousel.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    mainImage.style.transformOrigin = `${x}% ${y}%`;
+  });
+}
+
+// ========== PRODUCTOS RECOMENDADOS EN VISTA ==========
+async function loadViewRecommendedProducts(currentProduct) {
+  const container = document.getElementById('viewRecommended');
+  const grid = document.getElementById('viewRecommendedGrid');
+
+  if (!currentProduct || !currentProduct.categoria_id) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+
+  try {
+    // Obtener productos de la misma categoría
+    const { data: products, error } = await supabaseClient
+      .from('productos')
+      .select('*')
+      .eq('categoria_id', currentProduct.categoria_id)
+      .eq('activo', true)
+      .neq('id', currentProduct.id)
+      .limit(50);
+
+    if (error || !products || products.length === 0) {
+      if (container) container.style.display = 'none';
+      return;
+    }
+
+    const currentPrice = parseFloat(currentProduct.precio);
+
+    // Clasificar productos por precio
+    const cheaper = products.filter(p => parseFloat(p.precio) < currentPrice).sort((a, b) => parseFloat(b.precio) - parseFloat(a.precio));
+    const moreExpensive = products.filter(p => parseFloat(p.precio) > currentPrice).sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
+    const similar = products.filter(p => {
+      const price = parseFloat(p.precio);
+      const diff = Math.abs(price - currentPrice) / currentPrice;
+      return diff <= 0.15 && price !== currentPrice;
+    });
+
+    const recommended = [];
+
+    // Agregar más barato
+    if (cheaper.length > 0) {
+      recommended.push(cheaper[0]);
+    }
+
+    // Agregar similar
+    if (similar.length > 0) {
+      const randomSimilar = similar[Math.floor(Math.random() * similar.length)];
+      if (!recommended.find(p => p.id === randomSimilar.id)) {
+        recommended.push(randomSimilar);
+      }
+    }
+
+    // Agregar más caro
+    if (moreExpensive.length > 0) {
+      recommended.push(moreExpensive[0]);
+    }
+
+    // Llenar con aleatorios si faltan
+    while (recommended.length < 3 && products.length > recommended.length) {
+      const random = products[Math.floor(Math.random() * products.length)];
+      if (!recommended.find(p => p.id === random.id)) {
+        recommended.push(random);
+      }
+    }
+
+    if (recommended.length === 0) {
+      if (container) container.style.display = 'none';
+      return;
+    }
+
+    // Renderizar productos recomendados
+    grid.innerHTML = recommended.map(product => {
+      const mainImage = product.imagenes && product.imagenes.length > 0
+        ? product.imagenes[0]
+        : 'https://via.placeholder.com/300x300?text=Sin+Imagen';
+
+      return `
+        <div class="recommended-view-item" data-product-id="${product.id}">
+          <img src="${mainImage}" alt="${product.nombre}" class="recommended-view-image">
+          <div class="recommended-view-info">
+            <p class="recommended-view-name">${product.nombre}</p>
+            <p class="recommended-view-price">${formatPrice(product.precio)}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (container) container.style.display = 'block';
+
+    // Hacer items clicables - navegar a producto usando navigate()
+    document.querySelectorAll('.recommended-view-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const productId = item.dataset.productId;
+        // Obtener parámetros actuales para mantener contexto
+        const params = new URLSearchParams(window.location.search);
+        const categoryId = params.get('categoria');
+        const groupId = params.get('grupo');
+
+        // Navegar al nuevo producto
+        if (typeof navigate === 'function') {
+          navigate(`/producto?id=${productId}${categoryId ? `&categoria=${categoryId}` : ''}${groupId ? `&grupo=${groupId}` : ''}`);
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error('Error al cargar productos recomendados:', error);
+    if (container) container.style.display = 'none';
+  }
+}
+
+// Exportar función para uso global
+window.renderProductDetails = renderProductDetails;
