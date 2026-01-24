@@ -691,6 +691,79 @@ body {
   color: var(--blanco);
 }
 
+/* Mensajes flotantes motivacionales */
+.whatsapp-messages {
+  position: fixed;
+  bottom: 90px;
+  right: 90px;
+  z-index: 998;
+  max-width: 250px;
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+.whatsapp-message-bubble {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: var(--blanco);
+  padding: 12px 16px;
+  border-radius: 16px 16px 2px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: bounceIn 0.6s ease-out;
+}
+
+.whatsapp-message-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 12px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #128C7E;
+}
+
+.whatsapp-message-bubble p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* ========== BOTÓN VOLVER ARRIBA ========== */
 .scroll-top-btn {
   position: fixed;
@@ -813,6 +886,21 @@ body {
     height: 56px;
     bottom: 16px;
     right: 16px;
+  }
+
+  .whatsapp-messages {
+    bottom: 80px;
+    right: 80px;
+    max-width: 200px;
+  }
+
+  .whatsapp-message-bubble {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .whatsapp-message-bubble p {
+    font-size: 0.8rem;
   }
 }
 

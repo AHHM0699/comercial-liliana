@@ -482,6 +482,8 @@ function initProductCarousels() {
 // ========== NAVEGAR CARRUSEL ==========
 function navigateCarousel(carouselId, direction) {
   const track = document.getElementById(`carousel-${carouselId}`);
+  if (!track) return;
+
   const slides = track.querySelectorAll('.product-carousel-slide');
   const totalSlides = slides.length;
 
@@ -504,6 +506,8 @@ function navigateCarousel(carouselId, direction) {
 // ========== IR A SLIDE ESPECÍFICO ==========
 function goToSlide(carouselId, slideIndex) {
   const track = document.getElementById(`carousel-${carouselId}`);
+  if (!track) return;
+
   const dots = document.querySelectorAll(`#dots-${carouselId} .carousel-dot`);
 
   // Mover carrusel
@@ -638,9 +642,71 @@ scrollTopBtn.addEventListener('click', () => {
   });
 });
 
+// ========== MENSAJES FLOTANTES MOTIVACIONALES ==========
+const motivationalMessages = [
+  "💰 Consulta por nuestros descuentos especiales",
+  "🎁 ¡Tenemos ofertas increíbles para ti!",
+  "📦 Pregunta por disponibilidad y envío",
+  "⭐ Muebles de calidad al mejor precio",
+  "💬 ¿Tienes dudas? ¡Escríbenos ahora!",
+  "🏠 Renueva tu hogar con nuestros productos",
+  "✨ Consulta por el precio final con descuento",
+  "🚚 Envíos a todo Lima",
+  "💯 Garantía de calidad en todos nuestros productos",
+  "🎉 ¡Ofertas por tiempo limitado!",
+  "📱 Contáctanos para más información",
+  "🛋️ Encuentra el mueble perfecto para tu hogar"
+];
+
+let messageInterval = null;
+let currentMessageTimeout = null;
+
+function showMotivationalMessage() {
+  const messageContainer = document.getElementById('whatsappMessages');
+  const messageText = document.getElementById('whatsappMessageText');
+
+  if (!messageContainer || !messageText) return;
+
+  // Seleccionar mensaje aleatorio
+  const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+
+  // Mostrar mensaje
+  messageText.textContent = randomMessage;
+  messageContainer.style.display = 'block';
+  messageContainer.style.animation = 'slideInFromRight 0.5s ease-out';
+
+  // Ocultar después de 5 segundos
+  currentMessageTimeout = setTimeout(() => {
+    messageContainer.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+      messageContainer.style.display = 'none';
+    }, 500);
+  }, 5000);
+}
+
+function initMotivationalMessages() {
+  // Mostrar primer mensaje después de 10 segundos
+  setTimeout(() => {
+    showMotivationalMessage();
+
+    // Luego mostrar cada 20-30 segundos aleatoriamente
+    messageInterval = setInterval(() => {
+      const randomDelay = 20000 + Math.random() * 10000; // 20-30 segundos
+      setTimeout(showMotivationalMessage, randomDelay);
+    }, 30000);
+  }, 10000);
+}
+
+// Iniciar mensajes motivacionales cuando se carga la página
+window.addEventListener('load', initMotivationalMessages);
+
 // ========== LIMPIAR AL SALIR ==========
 window.addEventListener('beforeunload', () => {
   // Limpiar todos los intervals
   activeCarousels.forEach((interval) => clearInterval(interval));
   activeCarousels.clear();
+
+  // Limpiar mensajes motivacionales
+  if (messageInterval) clearInterval(messageInterval);
+  if (currentMessageTimeout) clearTimeout(currentMessageTimeout);
 });
