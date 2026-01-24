@@ -438,8 +438,13 @@ function formatPrice(price) {
 
 // ========== INICIALIZAR CARRUSELES DE PRODUCTOS ==========
 function initProductCarousels() {
+  console.log('🎨 Inicializando carruseles de productos...');
+
   // Botones de consultar
-  document.querySelectorAll('.product-consult-btn').forEach(btn => {
+  const consultBtns = document.querySelectorAll('.product-consult-btn');
+  console.log('📱 Botones de consulta encontrados:', consultBtns.length);
+
+  consultBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const name = btn.dataset.productName;
       const price = btn.dataset.productPrice;
@@ -459,21 +464,29 @@ function initProductCarousels() {
   });
 
   // Flechas de navegación
-  document.querySelectorAll('.carousel-arrow').forEach(arrow => {
+  const arrows = document.querySelectorAll('.carousel-arrow');
+  console.log('⬅️➡️ Flechas de navegación encontradas:', arrows.length);
+
+  arrows.forEach(arrow => {
     arrow.addEventListener('click', (e) => {
       e.stopPropagation();
       const carouselId = arrow.dataset.carouselId;
       const direction = arrow.dataset.direction;
+      console.log('🖱️ Click en flecha:', direction, 'carousel:', carouselId);
       navigateCarousel(carouselId, direction);
     });
   });
 
   // Dots de navegación
-  document.querySelectorAll('.carousel-dot').forEach(dot => {
+  const dots = document.querySelectorAll('.carousel-dot');
+  console.log('⚫ Dots de navegación encontrados:', dots.length);
+
+  dots.forEach(dot => {
     dot.addEventListener('click', (e) => {
       e.stopPropagation();
       const carouselId = dot.dataset.carouselId;
       const slideIndex = parseInt(dot.dataset.slide);
+      console.log('🖱️ Click en dot:', slideIndex, 'carousel:', carouselId);
       goToSlide(carouselId, slideIndex);
     });
   });
@@ -481,63 +494,118 @@ function initProductCarousels() {
 
 // ========== NAVEGAR CARRUSEL ==========
 function navigateCarousel(carouselId, direction) {
+  console.log('🔄 Navegando carousel:', carouselId, 'direccion:', direction);
+
   const track = document.getElementById(`carousel-${carouselId}`);
-  if (!track) return;
+  if (!track) {
+    console.log('❌ Track no encontrado:', carouselId);
+    return;
+  }
 
   const slides = track.querySelectorAll('.product-carousel-slide');
   const totalSlides = slides.length;
 
+  console.log('📊 Total slides:', totalSlides);
+
   if (totalSlides <= 1) return;
 
-  // Obtener slide actual
+  // Obtener slide actual desde el transform
   const currentTransform = track.style.transform || 'translateX(0%)';
-  const currentSlide = parseInt(currentTransform.match(/-?\d+/) || [0]) / 100;
+  const match = currentTransform.match(/-?\d+/);
+  const currentSlide = match ? Math.abs(parseInt(match[0])) / 100 : 0;
+
+  console.log('📍 Slide actual:', currentSlide, 'transform:', currentTransform);
 
   let newSlide;
   if (direction === 'next') {
-    newSlide = (Math.abs(currentSlide) + 1) % totalSlides;
+    newSlide = (currentSlide + 1) % totalSlides;
   } else {
-    newSlide = (Math.abs(currentSlide) - 1 + totalSlides) % totalSlides;
+    newSlide = (currentSlide - 1 + totalSlides) % totalSlides;
   }
+
+  console.log('➡️ Nuevo slide:', newSlide);
 
   goToSlide(carouselId, newSlide);
 }
 
 // ========== IR A SLIDE ESPECÍFICO ==========
 function goToSlide(carouselId, slideIndex) {
+  console.log('🎯 Ir a slide:', slideIndex, 'carousel:', carouselId);
+
   const track = document.getElementById(`carousel-${carouselId}`);
-  if (!track) return;
+  if (!track) {
+    console.log('❌ Track no encontrado para goToSlide:', carouselId);
+    return;
+  }
 
   const dots = document.querySelectorAll(`#dots-${carouselId} .carousel-dot`);
 
   // Mover carrusel
   track.style.transform = `translateX(-${slideIndex * 100}%)`;
+  console.log('✅ Transform aplicado:', track.style.transform);
 
   // Actualizar dots
   dots.forEach((dot, index) => {
     dot.classList.toggle('active', index === slideIndex);
   });
 
-  // Pausar y reiniciar autoplay
+  // Reiniciar autoplay desde el nuevo slide
   pauseCarousel(carouselId);
-  startCarouselAutoplay(carouselId);
+
+  // Iniciar autoplay manteniendo el slide actual
+  const slides = track.querySelectorAll('.product-carousel-slide');
+  if (slides.length > 1) {
+    if (activeCarousels.has(carouselId)) {
+      clearInterval(activeCarousels.get(carouselId));
+    }
+
+    let currentSlide = slideIndex;
+    const interval = setInterval(() => {
+      currentSlide = (currentSlide + 1) % slides.length;
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+      // Actualizar dots
+      const dots = document.querySelectorAll(`#dots-${carouselId} .carousel-dot`);
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+      });
+    }, CONFIG.CAROUSEL_INTERVAL);
+
+    activeCarousels.set(carouselId, interval);
+  }
 }
 
 // ========== INICIAR AUTOPLAY DEL CARRUSEL ==========
 function startCarouselAutoplay(carouselId) {
   const track = document.getElementById(`carousel-${carouselId}`);
-  if (!track) return;
+  if (!track) {
+    console.log('❌ Track no encontrado para carousel:', carouselId);
+    return;
+  }
 
   const slides = track.querySelectorAll('.product-carousel-slide');
-  if (slides.length <= 1) return;
+  if (slides.length <= 1) {
+    console.log('⚠️ Carousel tiene <=1 slide:', carouselId, 'slides:', slides.length);
+    return;
+  }
 
   // Si ya existe un interval, limpiarlo
   if (activeCarousels.has(carouselId)) {
     clearInterval(activeCarousels.get(carouselId));
   }
 
+  console.log('✅ Iniciando carousel autoplay:', carouselId, 'slides:', slides.length);
+
+  let currentSlide = 0;
   const interval = setInterval(() => {
-    navigateCarousel(carouselId, 'next');
+    currentSlide = (currentSlide + 1) % slides.length;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    // Actualizar dots
+    const dots = document.querySelectorAll(`#dots-${carouselId} .carousel-dot`);
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentSlide);
+    });
   }, CONFIG.CAROUSEL_INTERVAL);
 
   activeCarousels.set(carouselId, interval);
@@ -546,6 +614,7 @@ function startCarouselAutoplay(carouselId) {
 // ========== PAUSAR CARRUSEL ==========
 function pauseCarousel(carouselId) {
   if (activeCarousels.has(carouselId)) {
+    console.log('⏸️ Pausando carousel:', carouselId);
     clearInterval(activeCarousels.get(carouselId));
     activeCarousels.delete(carouselId);
   }
@@ -553,26 +622,21 @@ function pauseCarousel(carouselId) {
 
 // ========== INICIALIZAR AUTOPLAY PARA CARRUSELES DE PRODUCTOS ==========
 function initProductCarouselsAutoplay() {
-  // Crear observer solo una vez
-  if (!carouselObserver) {
-    carouselObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const carouselId = entry.target.dataset.carouselId;
+  console.log('🎬 Inicializando autoplay de carruseles de productos...');
 
-        if (entry.isIntersecting) {
-          startCarouselAutoplay(carouselId);
-        } else {
-          pauseCarousel(carouselId);
-        }
-      });
-    }, {
-      threshold: 0.5
-    });
-  }
-
-  // Observar todos los carruseles de productos que no estén siendo observados
+  // Iniciar autoplay directamente para todos los carruseles visibles
   document.querySelectorAll('.product-carousel').forEach(carousel => {
-    carouselObserver.observe(carousel);
+    const carouselId = carousel.dataset.carouselId;
+    if (carouselId) {
+      const track = document.getElementById(`carousel-${carouselId}`);
+      const slides = track ? track.querySelectorAll('.product-carousel-slide') : [];
+
+      console.log('🔍 Procesando carousel:', carouselId, 'slides:', slides.length);
+
+      if (slides.length > 1) {
+        startCarouselAutoplay(carouselId);
+      }
+    }
   });
 }
 
