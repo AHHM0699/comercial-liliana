@@ -168,8 +168,13 @@ async function loadCategories() {
   // Cargar grupos primero
   const groupsResult = await getGroups();
   if (groupsResult.success) {
-    allGroups = groupsResult.data;
-    console.log('✅ Grupos cargados:', allGroups);
+    // FORZAR ordenamiento por campo 'orden' en el cliente
+    allGroups = groupsResult.data.sort((a, b) => {
+      const ordenA = a.orden !== null && a.orden !== undefined ? a.orden : 9999;
+      const ordenB = b.orden !== null && b.orden !== undefined ? b.orden : 9999;
+      return ordenA - ordenB;
+    });
+    console.log('✅ Grupos cargados y ordenados:', allGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
   } else {
     console.error('❌ Error cargando grupos');
   }
@@ -195,12 +200,10 @@ function renderCategoryGroups() {
     return;
   }
 
-  // Ordenar grupos por campo 'orden'
-  console.log('🔢 Ordenando grupos. Valores de orden:', allGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
-  const sortedGroups = [...allGroups].sort((a, b) => (a.orden || 0) - (b.orden || 0));
-  console.log('✅ Grupos ordenados:', sortedGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
+  // Los grupos ya están ordenados en loadCategories()
+  console.log('📋 Renderizando grupos en orden:', allGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
 
-  container.innerHTML = sortedGroups.map(group => {
+  container.innerHTML = allGroups.map(group => {
     return `
       <div class="group-card" data-group="${group.id}">
         <div class="group-carousel" data-carousel-group="${group.id}">
