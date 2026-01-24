@@ -53,12 +53,22 @@ function openProductModal(product) {
 
   // Configurar botón de WhatsApp
   modalWhatsappBtn.onclick = () => {
+    // Obtener la URL de la imagen actual
+    const currentImageUrl = product.imagenes && product.imagenes.length > 0
+      ? product.imagenes[currentModalImageIndex]
+      : null;
+
     let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
 
     if (hasDiscount) {
       message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
     } else {
       message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+    }
+
+    // Agregar URL de la imagen si existe
+    if (currentImageUrl) {
+      message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
     }
 
     openWhatsApp(message);

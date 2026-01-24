@@ -320,6 +320,9 @@ function renderProducts(products) {
   // Inicializar carruseles de productos
   initProductCarousels();
 
+  // Inicializar autoplay para nuevos carruseles
+  initProductCarouselsAutoplay();
+
   // Hacer productos clicables para abrir modal
   if (typeof makeProductsClickable === 'function') {
     makeProductsClickable();
@@ -562,6 +565,28 @@ function pauseCarousel(carouselId) {
     clearInterval(activeCarousels.get(carouselId));
     activeCarousels.delete(carouselId);
   }
+}
+
+// ========== INICIALIZAR AUTOPLAY PARA CARRUSELES DE PRODUCTOS ==========
+function initProductCarouselsAutoplay() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const carouselId = entry.target.dataset.carouselId;
+
+      if (entry.isIntersecting) {
+        startCarouselAutoplay(carouselId);
+      } else {
+        pauseCarousel(carouselId);
+      }
+    });
+  }, {
+    threshold: 0.5
+  });
+
+  // Observar todos los carruseles de productos
+  document.querySelectorAll('.product-carousel').forEach(carousel => {
+    observer.observe(carousel);
+  });
 }
 
 // ========== BOTÓN "VER MÁS" ==========
