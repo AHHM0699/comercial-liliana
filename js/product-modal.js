@@ -475,9 +475,11 @@ const modalMessagesHigh = [
 const modalMessagesLow = [
   "💬 ¡Consulta por el envío gratuito!",
   "🎁 Pregunta cómo obtener envío gratis",
-  "✨ Compras mayores a S/500: envío gratis al Bajo Piura",
+  "✨ ¿Sabías que puedes obtener envío gratis? ¡Pregúntanos!",
   "🚚 ¿Quieres envío gratuito? ¡Pregúntanos cómo!",
-  "💰 Consulta por descuentos y envío sin costo"
+  "💰 Consulta por descuentos y envío sin costo",
+  "🎉 ¡Hay formas de obtener envío gratis! Consulta ahora",
+  "📦 Pregunta por nuestras promociones de envío"
 ];
 
 function showModalMessages(product, hasDiscount, container, textElement) {
@@ -488,54 +490,74 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   let currentMessageIndex = 0;
   let messageInterval;
+  let messageTimeout;
 
   function showNextMessage() {
-    const message = messages[currentMessageIndex];
-    textElement.textContent = message;
+    // Seleccionar mensaje aleatorio
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    textElement.textContent = randomMessage;
     container.style.display = 'block';
-    currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+    container.style.animation = 'slideInFromRight 0.5s ease-out';
+
+    // Ocultar después de 5 segundos
+    messageTimeout = setTimeout(() => {
+      container.style.animation = 'fadeOut 0.5s ease-out';
+      setTimeout(() => {
+        container.style.display = 'none';
+      }, 500);
+    }, 5000);
   }
 
-  // Mostrar primer mensaje inmediatamente
-  showNextMessage();
+  // Mostrar primer mensaje después de 2 segundos
+  setTimeout(() => {
+    showNextMessage();
 
-  // Rotar mensajes cada 5 segundos
-  messageInterval = setInterval(showNextMessage, 5000);
+    // Luego mostrar cada 15-20 segundos aleatoriamente
+    messageInterval = setInterval(() => {
+      const randomDelay = 15000 + Math.random() * 5000; // 15-20 segundos
+      setTimeout(showNextMessage, randomDelay);
+    }, 20000);
+  }, 2000);
 
-  // Hacer clic en mensaje para abrir WhatsApp
-  container.onclick = () => {
-    const currentImageUrl = product.imagenes && product.imagenes.length > 0
-      ? product.imagenes[currentModalImageIndex]
-      : null;
+  // Configurar botón flotante de WhatsApp
+  const whatsappBtn = document.getElementById('modalWhatsappFloat');
+  if (whatsappBtn) {
+    whatsappBtn.onclick = () => {
+      const currentImageUrl = product.imagenes && product.imagenes.length > 0
+        ? product.imagenes[currentModalImageIndex]
+        : null;
 
-    let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
+      let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
 
-    if (hasDiscount) {
-      message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
-    } else {
-      message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
-    }
+      if (hasDiscount) {
+        message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
+      } else {
+        message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+      }
 
-    // Mencionar envío según precio
-    if (precio >= 500) {
-      message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
-    } else {
-      message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;
-    }
+      // Mencionar envío según precio
+      if (precio >= 500) {
+        message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
+      } else {
+        message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;
+      }
 
-    // Agregar URL de la imagen si existe
-    if (currentImageUrl) {
-      message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
-    }
+      // Agregar URL de la imagen si existe
+      if (currentImageUrl) {
+        message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
+      }
 
-    openWhatsApp(message);
-  };
+      openWhatsApp(message);
+    };
+  }
 
-  // Limpiar interval cuando se cierra el modal
+  // Limpiar intervals cuando se cierra el modal
   const closeBtn = document.getElementById('closeProductModal');
   const originalOnClick = closeBtn.onclick;
   closeBtn.onclick = () => {
     clearInterval(messageInterval);
+    clearTimeout(messageTimeout);
     if (originalOnClick) originalOnClick();
     else closeProductModal();
   };
