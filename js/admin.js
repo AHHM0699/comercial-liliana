@@ -1006,10 +1006,12 @@ function closeGroupModal() {
 }
 
 async function loadGroupData(groupId) {
-  console.log('🔍 Buscando grupo con ID:', groupId);
+  console.log('🔍 Buscando grupo con ID:', groupId, 'Tipo:', typeof groupId);
   console.log('📦 Grupos disponibles:', allGroups);
 
-  const group = allGroups.find(g => g.id === groupId);
+  // Convertir groupId a número para comparación correcta
+  const numericGroupId = typeof groupId === 'string' ? parseInt(groupId) : groupId;
+  const group = allGroups.find(g => g.id === numericGroupId);
 
   console.log('✅ Grupo encontrado:', group);
 
@@ -1104,7 +1106,9 @@ function editGroup(groupId) {
 }
 
 function confirmDeleteGroup(groupId) {
-  const group = allGroups.find(g => g.id === groupId);
+  // Convertir groupId a número para comparación correcta
+  const numericGroupId = typeof groupId === 'string' ? parseInt(groupId) : groupId;
+  const group = allGroups.find(g => g.id === numericGroupId);
 
   if (!group) return;
 
