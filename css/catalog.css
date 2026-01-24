@@ -1137,7 +1137,7 @@ body {
 
 /* Botón flotante de WhatsApp en modal */
 .modal-whatsapp-float {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   right: 20px;
   width: 60px;
@@ -1167,7 +1167,7 @@ body {
 
 /* Mensajes flotantes en modal */
 .modal-whatsapp-messages {
-  position: absolute;
+  position: fixed;
   bottom: 90px;
   right: 90px;
   z-index: 1001;

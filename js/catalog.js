@@ -590,15 +590,20 @@ function pauseCarousel(carouselId) {
 
 // ========== INICIALIZAR AUTOPLAY PARA CARRUSELES DE PRODUCTOS ==========
 function initProductCarouselsAutoplay() {
-  // Iniciar autoplay para todos los carruseles de productos
-  document.querySelectorAll('.product-carousel').forEach(carousel => {
+  const carousels = document.querySelectorAll('.product-carousel');
+  console.log(`🎬 Inicializando ${carousels.length} carruseles de productos...`);
+
+  carousels.forEach((carousel, index) => {
     const carouselId = carousel.dataset.carouselId;
     if (carouselId && !activeCarousels.has(carouselId)) {
       const track = document.getElementById(`carousel-${carouselId}`);
       const slides = track ? track.querySelectorAll('.product-carousel-slide') : [];
 
+      console.log(`  Carrusel #${index + 1} (ID: ${carouselId}): ${slides.length} slides`);
+
       if (slides.length > 1) {
         startCarouselAutoplay(carouselId);
+        console.log(`  ✅ Autoplay iniciado para carousel ${carouselId}`);
       }
     }
   });

@@ -464,29 +464,64 @@ async function loadRecommendedProducts(currentProduct) {
 }
 
 // ========== MENSAJES FLOTANTES EN MODAL ==========
-const modalMessagesHigh = [
-  "🆓 ¡Envío GRATUITO a todo el Bajo Piura!",
-  "🎉 ¡Excelente elección! Envío gratis incluido",
-  "✨ Producto premium con envío sin costo al Bajo Piura",
-  "💰 Consulta por descuentos adicionales + envío gratis",
-  "🚚 Comprando ahora, tu envío es GRATIS al Bajo Piura"
+// Mensajes para productos < S/500
+const modalMessagesLow = [
+  "💰 ¡Consulta por descuentos especiales!",
+  "🎁 ¿Buscas mejor precio? ¡Pregúntanos!",
+  "✨ Tenemos promociones increíbles para ti",
+  "💬 ¡Escríbenos y te damos el mejor precio!",
+  "🏷️ Descuentos por compra al por mayor",
+  "🎉 ¡Pregunta por nuestras ofertas del día!",
+  "💯 La mejor calidad al mejor precio",
+  "📦 ¿Quieres envío gratuito? ¡Pregúntanos cómo!",
+  "🚀 ¡Aprovecha nuestras promociones!",
+  "⭐ Consulta por financiamiento disponible"
 ];
 
-const modalMessagesLow = [
-  "💬 ¡Consulta por el envío gratuito!",
-  "🎁 Pregunta cómo obtener envío gratis",
-  "✨ ¿Sabías que puedes obtener envío gratis? ¡Pregúntanos!",
-  "🚚 ¿Quieres envío gratuito? ¡Pregúntanos cómo!",
-  "💰 Consulta por descuentos y envío sin costo",
-  "🎉 ¡Hay formas de obtener envío gratis! Consulta ahora",
-  "📦 Pregunta por nuestras promociones de envío"
+// Mensajes para productos >= S/500 y < S/1000
+const modalMessagesMid = [
+  "🆓 ¡Envío GRATUITO a todo el Bajo Piura!",
+  "🎉 ¡Excelente elección! Envío gratis incluido",
+  "✨ Producto premium con envío sin costo",
+  "💰 Consulta por descuentos adicionales",
+  "🚚 Tu envío es GRATIS al Bajo Piura",
+  "💯 La mejor calidad + envío gratuito",
+  "🏷️ ¡Precio especial + envío sin costo!",
+  "⭐ Aprovecha el envío gratuito",
+  "🎁 Pregunta por financiamiento",
+  "📦 Envío gratis incluido en tu compra"
+];
+
+// Mensajes para productos >= S/1000
+const modalMessagesHigh = [
+  "🎁 ¡OBSEQUIO incluido en tu compra!",
+  "🆓 Envío GRATIS + REGALO especial",
+  "✨ Producto premium + obsequio sorpresa",
+  "🎉 ¡Llévate un regalo con tu compra!",
+  "💰 Descuento especial + obsequio incluido",
+  "🚚 Envío gratis + regalo de cortesía",
+  "⭐ ¡Compra ahora y recibe un obsequio!",
+  "🎁 Regalo exclusivo por tu compra",
+  "💯 La mejor calidad + envío gratis + obsequio",
+  "🏆 Compra premium con regalo incluido",
+  "📦 Envío gratis al Bajo Piura + obsequio",
+  "💎 Producto de lujo con beneficios extras"
 ];
 
 function showModalMessages(product, hasDiscount, container, textElement) {
   if (!container || !textElement) return;
 
   const precio = parseFloat(product.precio);
-  const messages = precio >= 500 ? modalMessagesHigh : modalMessagesLow;
+
+  // Seleccionar mensajes según el precio
+  let messages;
+  if (precio >= 1000) {
+    messages = modalMessagesHigh;
+  } else if (precio >= 500) {
+    messages = modalMessagesMid;
+  } else {
+    messages = modalMessagesLow;
+  }
 
   let currentMessageIndex = 0;
   let messageInterval;
@@ -513,11 +548,8 @@ function showModalMessages(product, hasDiscount, container, textElement) {
   setTimeout(() => {
     showNextMessage();
 
-    // Luego mostrar cada 15-20 segundos aleatoriamente
-    messageInterval = setInterval(() => {
-      const randomDelay = 15000 + Math.random() * 5000; // 15-20 segundos
-      setTimeout(showNextMessage, randomDelay);
-    }, 20000);
+    // Luego mostrar cada 15 segundos
+    messageInterval = setInterval(showNextMessage, 15000);
   }, 2000);
 
   // Configurar botón flotante de WhatsApp
@@ -536,8 +568,10 @@ function showModalMessages(product, hasDiscount, container, textElement) {
         message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
       }
 
-      // Mencionar envío según precio
-      if (precio >= 500) {
+      // Mencionar beneficios según precio
+      if (precio >= 1000) {
+        message += `\n\n🎁 ¿Incluye el obsequio y el envío gratuito al Bajo Piura?`;
+      } else if (precio >= 500) {
         message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
       } else {
         message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;
