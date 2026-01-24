@@ -651,11 +651,12 @@ const motivationalMessages = [
   "💬 ¿Tienes dudas? ¡Escríbenos ahora!",
   "🏠 Renueva tu hogar con nuestros productos",
   "✨ Consulta por el precio final con descuento",
-  "🚚 Envíos a todo Lima",
-  "💯 Garantía de calidad en todos nuestros productos",
+  "🚚 Envíos a todo Piura - Consulta por envío gratuito",
+  "💯 Productos de la mejor calidad",
   "🎉 ¡Ofertas por tiempo limitado!",
   "📱 Contáctanos para más información",
-  "🛋️ Encuentra el mueble perfecto para tu hogar"
+  "🛋️ Encuentra el mueble perfecto para tu hogar",
+  "🆓 Compras mayores a S/500: envío gratuito al Bajo Piura"
 ];
 
 let messageInterval = null;

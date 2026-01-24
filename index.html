@@ -228,9 +228,13 @@
           <p class="product-modal-category" id="modalProductCategory"></p>
           <p class="product-modal-price" id="modalProductPrice"></p>
           <p class="product-modal-description" id="modalProductDescription"></p>
-          <button class="btn btn-whatsapp product-modal-whatsapp" id="modalWhatsappBtn">
-            💬 Consultar por WhatsApp
-          </button>
+
+          <!-- Mensajes flotantes específicos del producto -->
+          <div id="modalWhatsappMessages" class="modal-whatsapp-messages" style="display: none;">
+            <div class="modal-whatsapp-bubble">
+              <p id="modalWhatsappText"></p>
+            </div>
+          </div>
 
           <!-- Productos Recomendados -->
           <div class="recommended-products" id="recommendedProducts">

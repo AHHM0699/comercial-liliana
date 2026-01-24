@@ -20,7 +20,8 @@ function openProductModal(product) {
   const modalCategory = document.getElementById('modalProductCategory');
   const modalPrice = document.getElementById('modalProductPrice');
   const modalDescription = document.getElementById('modalProductDescription');
-  const modalWhatsappBtn = document.getElementById('modalWhatsappBtn');
+  const modalMessagesContainer = document.getElementById('modalWhatsappMessages');
+  const modalMessagesText = document.getElementById('modalWhatsappText');
 
   // Calcular descuento si existe
   const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
@@ -51,28 +52,8 @@ function openProductModal(product) {
 
   modalDescription.textContent = product.descripcion || 'Sin descripción disponible';
 
-  // Configurar botón de WhatsApp
-  modalWhatsappBtn.onclick = () => {
-    // Obtener la URL de la imagen actual
-    const currentImageUrl = product.imagenes && product.imagenes.length > 0
-      ? product.imagenes[currentModalImageIndex]
-      : null;
-
-    let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
-
-    if (hasDiscount) {
-      message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
-    } else {
-      message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
-    }
-
-    // Agregar URL de la imagen si existe
-    if (currentImageUrl) {
-      message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
-    }
-
-    openWhatsApp(message);
-  };
+  // Configurar mensajes flotantes basados en precio
+  showModalMessages(product, hasDiscount, modalMessagesContainer, modalMessagesText);
 
   // Renderizar carrusel de imágenes
   renderModalCarousel(product.imagenes || []);
@@ -480,4 +461,82 @@ async function loadRecommendedProducts(currentProduct) {
     console.error('Error al cargar productos recomendados:', error);
     container.style.display = 'none';
   }
+}
+
+// ========== MENSAJES FLOTANTES EN MODAL ==========
+const modalMessagesHigh = [
+  "🆓 ¡Envío GRATUITO a todo el Bajo Piura!",
+  "🎉 ¡Excelente elección! Envío gratis incluido",
+  "✨ Producto premium con envío sin costo al Bajo Piura",
+  "💰 Consulta por descuentos adicionales + envío gratis",
+  "🚚 Comprando ahora, tu envío es GRATIS al Bajo Piura"
+];
+
+const modalMessagesLow = [
+  "💬 ¡Consulta por el envío gratuito!",
+  "🎁 Pregunta cómo obtener envío gratis",
+  "✨ Compras mayores a S/500: envío gratis al Bajo Piura",
+  "🚚 ¿Quieres envío gratuito? ¡Pregúntanos cómo!",
+  "💰 Consulta por descuentos y envío sin costo"
+];
+
+function showModalMessages(product, hasDiscount, container, textElement) {
+  if (!container || !textElement) return;
+
+  const precio = parseFloat(product.precio);
+  const messages = precio >= 500 ? modalMessagesHigh : modalMessagesLow;
+
+  let currentMessageIndex = 0;
+  let messageInterval;
+
+  function showNextMessage() {
+    const message = messages[currentMessageIndex];
+    textElement.textContent = message;
+    container.style.display = 'block';
+    currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+  }
+
+  // Mostrar primer mensaje inmediatamente
+  showNextMessage();
+
+  // Rotar mensajes cada 5 segundos
+  messageInterval = setInterval(showNextMessage, 5000);
+
+  // Hacer clic en mensaje para abrir WhatsApp
+  container.onclick = () => {
+    const currentImageUrl = product.imagenes && product.imagenes.length > 0
+      ? product.imagenes[currentModalImageIndex]
+      : null;
+
+    let message = `¡Hola! Me interesa este producto:\n\n📦 ${product.nombre}\n`;
+
+    if (hasDiscount) {
+      message += `💰 Precio de lista: ${formatPrice(product.precio_original)}\n🎁 Precio rebajado: ${formatPrice(product.precio)}\n\n¿Cuál sería el precio final con descuento? ¿Está disponible?`;
+    } else {
+      message += `💰 Precio: ${formatPrice(product.precio)}\n\nLo vi en su catálogo web. ¿Está disponible?`;
+    }
+
+    // Mencionar envío según precio
+    if (precio >= 500) {
+      message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
+    } else {
+      message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;
+    }
+
+    // Agregar URL de la imagen si existe
+    if (currentImageUrl) {
+      message += `\n\n📸 Imagen del modelo:\n${currentImageUrl}`;
+    }
+
+    openWhatsApp(message);
+  };
+
+  // Limpiar interval cuando se cierra el modal
+  const closeBtn = document.getElementById('closeProductModal');
+  const originalOnClick = closeBtn.onclick;
+  closeBtn.onclick = () => {
+    clearInterval(messageInterval);
+    if (originalOnClick) originalOnClick();
+    else closeProductModal();
+  };
 }
