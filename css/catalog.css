@@ -1487,6 +1487,26 @@ body {
   color: var(--azul-oscuro);
 }
 
+.group-consult-btn,
+.category-modal-consult-btn {
+  display: inline-block;
+  margin-top: var(--espacio-md);
+  padding: var(--espacio-sm) var(--espacio-lg);
+  font-size: 1rem;
+  background-color: #25D366;
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  transition: all var(--transicion);
+}
+
+.group-consult-btn:hover,
+.category-modal-consult-btn:hover {
+  background-color: #128C7E;
+  transform: scale(1.05);
+}
+
 .categories-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1555,6 +1575,24 @@ body {
 .category-card-count {
   font-size: 0.9rem;
   color: var(--gris-medio);
+}
+
+.category-consult-btn {
+  margin-top: var(--espacio-sm);
+  padding: var(--espacio-xs) var(--espacio-md);
+  font-size: 0.9rem;
+  background-color: #25D366;
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: all var(--transicion);
+  width: 100%;
+}
+
+.category-consult-btn:hover {
+  background-color: #128C7E;
+  transform: scale(1.02);
 }
 
 /* ============================================

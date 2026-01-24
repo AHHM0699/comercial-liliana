@@ -120,6 +120,22 @@ function openWhatsApp(message) {
   window.open(url, '_blank');
 }
 
+/**
+ * Consultar por una categoría específica
+ */
+function consultarCategoria(categoryName) {
+  const message = `¡Hola! Me interesan los productos de la categoría "${categoryName}".\n\n¿Podrían mostrarme las opciones disponibles y sus precios?`;
+  openWhatsApp(message);
+}
+
+/**
+ * Consultar por un grupo específico
+ */
+function consultarGrupo(groupName) {
+  const message = `¡Hola! Me interesan los productos del grupo "${groupName}".\n\n¿Podrían mostrarme las opciones disponibles?`;
+  openWhatsApp(message);
+}
+
 // ========== LISTENERS GLOBALES DE CARRUSEL ==========
 function initGlobalCarouselListeners() {
   // Usar event delegation para manejar todos los clicks en flechas y dots
@@ -857,6 +873,15 @@ async function openGroupModal(groupId) {
   // Actualizar título
   title.textContent = `${group.icono || '📦'} ${group.nombre}`;
 
+  // Configurar botón de consultar grupo
+  const groupConsultBtn = document.getElementById('groupConsultBtn');
+  if (groupConsultBtn) {
+    groupConsultBtn.onclick = (e) => {
+      e.stopPropagation();
+      consultarGrupo(group.nombre);
+    };
+  }
+
   // Obtener categorías del grupo - filtrar por grupo_id
   const categoriesOfGroup = allCategories.filter(cat => cat.grupo_id === groupId);
 
@@ -889,6 +914,13 @@ async function openGroupModal(groupId) {
         <div class="category-card-content">
           <h3 class="category-card-name">${category.nombre}</h3>
           <p class="category-card-count" id="cat-count-${category.id}">Explorando...</p>
+          <button
+            class="btn btn-whatsapp category-consult-btn"
+            data-category-name="${category.nombre}"
+            onclick="event.stopPropagation(); consultarCategoria('${category.nombre}');"
+          >
+            📱 Consultar
+          </button>
         </div>
       </div>
     `;
@@ -989,6 +1021,15 @@ async function openCategoryModal(categoryId) {
   const category = allCategories.find(cat => cat.id === parseInt(categoryId));
   if (category) {
     title.textContent = category.nombre;
+
+    // Configurar botón de consultar categoría
+    const categoryConsultBtn = document.getElementById('categoryConsultBtn');
+    if (categoryConsultBtn) {
+      categoryConsultBtn.onclick = (e) => {
+        e.stopPropagation();
+        consultarCategoria(category.nombre);
+      };
+    }
   }
 
   // Mostrar loading
