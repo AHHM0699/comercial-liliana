@@ -85,52 +85,6 @@
     </div>
   </section>
 
-  <!-- ========== FILTROS DE SUBCATEGORÍAS ========== -->
-  <section class="subcategory-filters" id="subcategoryFilters" style="display: none;">
-    <div class="container">
-      <div class="subcategory-chips" id="subcategoryChips">
-        <!-- Se llenará dinámicamente con JavaScript -->
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== SECCIÓN DE PRODUCTOS ========== -->
-  <section class="products-section">
-    <div class="container">
-
-      <!-- Controles de productos -->
-      <div class="products-controls">
-        <div class="products-count" id="productsCount">
-          Cargando productos...
-        </div>
-      </div>
-
-      <!-- Grilla de productos -->
-      <div class="products-grid" id="productsGrid">
-        <!-- Se llenará dinámicamente con JavaScript -->
-      </div>
-
-      <!-- Spinner de carga -->
-      <div class="loading-container" id="loadingSpinner" style="display: none;">
-        <div class="spinner"></div>
-      </div>
-
-      <!-- Estado vacío -->
-      <div class="empty-state" id="emptyState" style="display: none;">
-        <div class="empty-state-icon">📦</div>
-        <h3 class="empty-state-title">No se encontraron productos</h3>
-        <p class="empty-state-text">Intenta ajustar los filtros de búsqueda</p>
-      </div>
-
-      <!-- Botón "Ver más" -->
-      <div class="load-more-container" id="loadMoreContainer" style="display: none;">
-        <button class="btn btn-primary load-more-btn" id="loadMoreBtn">
-          Ver más productos
-        </button>
-      </div>
-
-    </div>
-  </section>
 
   <!-- ========== SECCIÓN CTA ========== -->
   <section class="cta-section">
@@ -205,11 +159,49 @@
     </div>
   </div>
 
+  <!-- ========== MODAL DE GRUPO ========== -->
+  <div id="groupModal" class="group-modal" style="display: none;">
+    <div class="group-modal-overlay"></div>
+    <div class="group-modal-content">
+      <button class="modal-close-btn" id="closeGroupModal" aria-label="Cerrar">✕</button>
+
+      <div class="group-modal-header">
+        <h2 class="group-modal-title" id="groupModalTitle">Categorías</h2>
+      </div>
+
+      <div class="group-modal-body">
+        <div class="categories-grid" id="categoriesModalGrid">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE CATEGORÍA ========== -->
+  <div id="categoryModal" class="category-modal" style="display: none;">
+    <div class="category-modal-overlay"></div>
+    <div class="category-modal-content">
+      <button class="modal-close-btn" id="closeCategoryModal" aria-label="Cerrar">✕</button>
+      <button class="modal-back-btn" id="backToCategoryFromProducts" aria-label="Volver">← Volver</button>
+
+      <div class="category-modal-header">
+        <h2 class="category-modal-title" id="categoryModalTitle">Productos</h2>
+      </div>
+
+      <div class="category-modal-body">
+        <div class="category-products-grid" id="categoryProductsGrid">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== MODAL DE PRODUCTO ========== -->
   <div id="productModal" class="product-modal" style="display: none;">
     <div class="product-modal-overlay"></div>
     <div class="product-modal-content">
       <button class="product-modal-close" id="closeProductModal" aria-label="Cerrar">✕</button>
+      <button class="modal-back-btn" id="backToProducts" aria-label="Volver" style="display: none;">← Volver</button>
 
       <div class="product-modal-body">
         <!-- Carrusel de imágenes con zoom -->

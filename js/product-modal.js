@@ -8,6 +8,7 @@ let currentModalImageIndex = 0;
 let isZoomed = false;
 let zoomX = 0;
 let zoomY = 0;
+let modalCarouselAutoplayInterval = null;
 
 // ========== ABRIR MODAL ==========
 function openProductModal(product) {
@@ -73,6 +74,9 @@ function closeProductModal() {
   document.body.style.overflow = ''; // Restaurar scroll
   currentModalProduct = null;
   isZoomed = false;
+
+  // Detener autoplay del carrusel
+  stopModalCarouselAutoplay();
 }
 
 // ========== RENDERIZAR CARRUSEL DEL MODAL ==========
@@ -112,6 +116,9 @@ function renderModalCarousel(images) {
   // Eventos
   initModalCarouselEvents(images);
   initZoomEvents();
+
+  // Iniciar autoplay
+  startModalCarouselAutoplay(images);
 }
 
 // ========== INICIALIZAR EVENTOS DEL CARRUSEL ==========
@@ -138,6 +145,8 @@ function initModalCarouselEvents(images) {
     thumb.addEventListener('click', () => {
       currentModalImageIndex = index;
       updateModalImage(images);
+      // Pausar autoplay y reiniciarlo después de 5 segundos
+      pauseAndRestartAutoplay(images);
     });
   });
 
@@ -160,6 +169,9 @@ function navigateModalCarousel(direction, images) {
   }
 
   updateModalImage(images);
+
+  // Pausar autoplay y reiniciarlo después de 5 segundos
+  pauseAndRestartAutoplay(images);
 }
 
 // ========== ACTUALIZAR IMAGEN DEL MODAL ==========
@@ -174,6 +186,41 @@ function updateModalImage(images) {
   thumbnails.forEach((thumb, index) => {
     thumb.classList.toggle('active', index === currentModalImageIndex);
   });
+}
+
+// ========== INICIAR AUTOPLAY DEL CARRUSEL DEL MODAL ==========
+function startModalCarouselAutoplay(images) {
+  // Detener cualquier autoplay existente
+  stopModalCarouselAutoplay();
+
+  // Solo iniciar si hay más de una imagen
+  if (!images || images.length <= 1) return;
+
+  console.log('🎬 Iniciando autoplay del modal con', images.length, 'imágenes');
+
+  modalCarouselAutoplayInterval = setInterval(() => {
+    currentModalImageIndex = (currentModalImageIndex + 1) % images.length;
+    updateModalImage(images);
+    console.log('📸 Modal - Slide actual:', currentModalImageIndex + 1, 'de', images.length);
+  }, CONFIG.CAROUSEL_INTERVAL);
+}
+
+// ========== DETENER AUTOPLAY DEL CARRUSEL DEL MODAL ==========
+function stopModalCarouselAutoplay() {
+  if (modalCarouselAutoplayInterval) {
+    clearInterval(modalCarouselAutoplayInterval);
+    modalCarouselAutoplayInterval = null;
+    console.log('⏸️ Autoplay del modal detenido');
+  }
+}
+
+// ========== PAUSAR Y REINICIAR AUTOPLAY ==========
+function pauseAndRestartAutoplay(images) {
+  stopModalCarouselAutoplay();
+  // Reiniciar después de 5 segundos de inactividad
+  setTimeout(() => {
+    startModalCarouselAutoplay(images);
+  }, 5000);
 }
 
 // ========== EVENTOS DE TECLADO ==========
@@ -465,7 +512,7 @@ async function loadRecommendedProducts(currentProduct) {
 
 // ========== MENSAJES FLOTANTES EN MODAL ==========
 // Mensajes para productos < S/500
-const modalMessagesLow = [
+let modalMessagesLow = [
   "💰 ¡Consulta por descuentos especiales!",
   "🎁 ¿Buscas mejor precio? ¡Pregúntanos!",
   "✨ Tenemos promociones increíbles para ti",
@@ -479,7 +526,7 @@ const modalMessagesLow = [
 ];
 
 // Mensajes para productos >= S/500 y < S/1000
-const modalMessagesMid = [
+let modalMessagesMid = [
   "🆓 ¡Envío GRATUITO a todo el Bajo Piura!",
   "🎉 ¡Excelente elección! Envío gratis incluido",
   "✨ Producto premium con envío sin costo",
@@ -493,7 +540,7 @@ const modalMessagesMid = [
 ];
 
 // Mensajes para productos >= S/1000
-const modalMessagesHigh = [
+let modalMessagesHigh = [
   "🎁 ¡OBSEQUIO incluido en tu compra!",
   "🆓 Envío GRATIS + REGALO especial",
   "✨ Producto premium + obsequio sorpresa",
@@ -508,6 +555,49 @@ const modalMessagesHigh = [
   "💎 Producto de lujo con beneficios extras"
 ];
 
+// Rangos de precio configurables
+let PRICE_MID = 500;
+let PRICE_HIGH = 1000;
+let MODAL_MESSAGE_MIN_TIME = 12000;
+let MODAL_MESSAGE_MAX_TIME = 15000;
+
+// Cargar configuración personalizada desde localStorage
+(function() {
+  try {
+    const savedConfig = localStorage.getItem('comercial_liliana_messages_config');
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+
+      // Cargar mensajes
+      if (parsed.modalLowMessages && parsed.modalLowMessages.length > 0) {
+        modalMessagesLow = parsed.modalLowMessages;
+      }
+      if (parsed.modalMidMessages && parsed.modalMidMessages.length > 0) {
+        modalMessagesMid = parsed.modalMidMessages;
+      }
+      if (parsed.modalHighMessages && parsed.modalHighMessages.length > 0) {
+        modalMessagesHigh = parsed.modalHighMessages;
+      }
+
+      // Cargar rangos de precio
+      if (parsed.priceRanges) {
+        if (parsed.priceRanges.midPrice) PRICE_MID = parsed.priceRanges.midPrice;
+        if (parsed.priceRanges.highPrice) PRICE_HIGH = parsed.priceRanges.highPrice;
+      }
+
+      // Cargar tiempos
+      if (parsed.timing) {
+        if (parsed.timing.modalMessageMin) MODAL_MESSAGE_MIN_TIME = parsed.timing.modalMessageMin;
+        if (parsed.timing.modalMessageMax) MODAL_MESSAGE_MAX_TIME = parsed.timing.modalMessageMax;
+      }
+
+      console.log('✅ Configuración de mensajes del modal cargada desde admin');
+    }
+  } catch (e) {
+    console.error('Error cargando configuración del modal:', e);
+  }
+})();
+
 function showModalMessages(product, hasDiscount, container, textElement) {
   if (!container || !textElement) return;
 
@@ -515,21 +605,37 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   // Seleccionar mensajes según el precio
   let messages;
-  if (precio >= 1000) {
+  let messageType;
+  if (precio >= PRICE_HIGH) {
     messages = modalMessagesHigh;
-  } else if (precio >= 500) {
+    messageType = 'modalHigh';
+  } else if (precio >= PRICE_MID) {
     messages = modalMessagesMid;
+    messageType = 'modalMid';
   } else {
     messages = modalMessagesLow;
+    messageType = 'modalLow';
   }
 
   let messageTimeouts = []; // Array para guardar todos los timeouts
+  let currentMessageIndex = 0;
 
   function showNextMessage() {
-    // Seleccionar mensaje aleatorio
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    // Verificar si debe ser aleatorio o secuencial
+    let message;
+    const messagesConfig = window.MESSAGES_CONFIG;
+    const isRandomized = messagesConfig?.randomize?.[messageType] !== false;
 
-    textElement.textContent = randomMessage;
+    if (isRandomized) {
+      // Seleccionar mensaje aleatorio
+      message = messages[Math.floor(Math.random() * messages.length)];
+    } else {
+      // Seleccionar mensaje secuencial
+      message = messages[currentMessageIndex];
+      currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+    }
+
+    textElement.textContent = message;
     container.style.display = 'block';
     container.style.animation = 'slideInFromRight 0.5s ease-out';
 
@@ -545,8 +651,8 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   // Función para programar el siguiente mensaje con tiempo variable
   function scheduleNextMessage() {
-    // Tiempo aleatorio entre 12 y 15 segundos
-    const randomDelay = 12000 + Math.random() * 3000;
+    // Tiempo aleatorio entre min y max configurables
+    const randomDelay = MODAL_MESSAGE_MIN_TIME + Math.random() * (MODAL_MESSAGE_MAX_TIME - MODAL_MESSAGE_MIN_TIME);
     const nextTimeout = setTimeout(() => {
       showNextMessage();
       scheduleNextMessage(); // Programar el siguiente recursivamente
@@ -578,9 +684,9 @@ function showModalMessages(product, hasDiscount, container, textElement) {
       }
 
       // Mencionar beneficios según precio
-      if (precio >= 1000) {
+      if (precio >= PRICE_HIGH) {
         message += `\n\n🎁 ¿Incluye el obsequio y el envío gratuito al Bajo Piura?`;
-      } else if (precio >= 500) {
+      } else if (precio >= PRICE_MID) {
         message += `\n\n🆓 ¿Incluye el envío gratuito al Bajo Piura?`;
       } else {
         message += `\n\n🚚 ¿Puedo consultar por el envío gratuito?`;

@@ -460,6 +460,29 @@ async function getRandomProductsByGroup(grupo, limit = 5) {
   }
 }
 
+// ========== OBTENER PRODUCTOS ALEATORIOS POR CATEGORÍA ==========
+async function getRandomProductsByCategory(categoryId, limit = 5) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('productos')
+      .select('*')
+      .eq('activo', true)
+      .eq('categoria_id', categoryId)
+      .limit(limit * 2); // Obtenemos más para mezclar
+
+    if (error) throw error;
+
+    // Mezclamos y limitamos
+    const shuffled = data.sort(() => 0.5 - Math.random());
+    const limited = shuffled.slice(0, limit);
+
+    return { success: true, data: limited };
+  } catch (error) {
+    console.error('Error al obtener productos aleatorios por categoría:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // Inicializar automáticamente cuando se carga el script
 if (typeof CONFIG !== 'undefined') {
   initSupabase();

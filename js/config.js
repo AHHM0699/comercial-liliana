@@ -77,6 +77,37 @@ const CONFIG = {
   }
 };
 
+// ========== CARGAR CONFIGURACIÓN DINÁMICA DE MENSAJES ==========
+// Intentar cargar mensajes personalizados desde localStorage (configurados en el admin)
+(function() {
+  try {
+    const savedConfig = localStorage.getItem('comercial_liliana_messages_config');
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+
+      // Actualizar mensajes y tiempos si existen en localStorage
+      if (parsed.headerMessages) {
+        CONFIG.PROMO_MESSAGES = parsed.headerMessages;
+      }
+      if (parsed.timing) {
+        if (parsed.timing.promoBannerInterval) {
+          CONFIG.PROMO_BANNER_INTERVAL = parsed.timing.promoBannerInterval;
+        }
+        if (parsed.timing.carouselInterval) {
+          CONFIG.CAROUSEL_INTERVAL = parsed.timing.carouselInterval;
+        }
+      }
+
+      // Guardar configuración completa para acceso global
+      window.MESSAGES_CONFIG = parsed;
+
+      console.log('✅ Configuración de mensajes cargada desde admin');
+    }
+  } catch (e) {
+    console.error('Error cargando configuración de mensajes:', e);
+  }
+})();
+
 // Exportar configuración
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = CONFIG;

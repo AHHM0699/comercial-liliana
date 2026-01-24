@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cargar datos
   loadCategories();
-  loadProducts();
+  // loadProducts(); // Ya no se cargan productos en la pantalla principal - usar modales
 });
 
 // ========== BANNER PROMOCIONAL ANIMADO ==========
@@ -51,7 +51,18 @@ function initPromoBanner() {
 
   // Rotar mensajes
   setInterval(() => {
-    currentIndex = (currentIndex + 1) % CONFIG.PROMO_MESSAGES.length;
+    // Verificar si debe ser aleatorio o secuencial
+    const messagesConfig = window.MESSAGES_CONFIG;
+    const isRandomized = messagesConfig?.randomize?.header !== false;
+
+    if (isRandomized) {
+      // Seleccionar mensaje aleatorio
+      currentIndex = Math.floor(Math.random() * CONFIG.PROMO_MESSAGES.length);
+    } else {
+      // Seleccionar mensaje secuencial
+      currentIndex = (currentIndex + 1) % CONFIG.PROMO_MESSAGES.length;
+    }
+
     textElement.textContent = CONFIG.PROMO_MESSAGES[currentIndex];
     textElement.classList.remove('animate-slideInUp');
     void textElement.offsetWidth; // Force reflow
@@ -168,7 +179,11 @@ function renderCategoryGroups() {
   const container = document.getElementById('categoryGroupsGrid');
   const groups = CONFIG.CATEGORY_GROUPS;
 
-  container.innerHTML = Object.entries(groups).map(([groupKey, groupInfo]) => {
+  // Obtener entradas y randomizar el orden
+  const groupEntries = Object.entries(groups);
+  const shuffledGroups = groupEntries.sort(() => Math.random() - 0.5);
+
+  container.innerHTML = shuffledGroups.map(([groupKey, groupInfo]) => {
     return `
       <div class="group-card" data-group="${groupKey}">
         <div class="group-carousel" data-carousel-group="${groupKey}">
@@ -189,7 +204,7 @@ function renderCategoryGroups() {
   document.querySelectorAll('.group-card').forEach(card => {
     card.addEventListener('click', () => {
       const group = card.dataset.group;
-      filterByGroup(group);
+      openGroupModal(group);
     });
   });
 
@@ -687,7 +702,7 @@ scrollTopBtn.addEventListener('click', () => {
 });
 
 // ========== MENSAJES FLOTANTES MOTIVACIONALES ==========
-const motivationalMessages = [
+let motivationalMessages = [
   "💰 ¡Consulta por descuentos especiales!",
   "🎁 ¡Tenemos ofertas increíbles para ti!",
   "🆓 Envío GRATIS en compras +S/500 al Bajo Piura",
@@ -710,8 +725,25 @@ const motivationalMessages = [
   "💝 Regalo especial en compras grandes"
 ];
 
+// Cargar mensajes personalizados desde localStorage si existen
+(function() {
+  try {
+    const savedConfig = localStorage.getItem('comercial_liliana_messages_config');
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+      if (parsed.mainMessages && parsed.mainMessages.length > 0) {
+        motivationalMessages = parsed.mainMessages;
+        console.log('✅ Mensajes del botón principal cargados desde admin');
+      }
+    }
+  } catch (e) {
+    console.error('Error cargando mensajes del botón:', e);
+  }
+})();
+
 let messageInterval = null;
 let currentMessageTimeout = null;
+let currentMainMessageIndex = 0;
 
 function showMotivationalMessage() {
   const messageContainer = document.getElementById('whatsappMessages');
@@ -719,11 +751,22 @@ function showMotivationalMessage() {
 
   if (!messageContainer || !messageText) return;
 
-  // Seleccionar mensaje aleatorio
-  const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+  // Verificar si debe ser aleatorio o secuencial
+  let message;
+  const messagesConfig = window.MESSAGES_CONFIG;
+  const isRandomized = messagesConfig?.randomize?.main !== false;
+
+  if (isRandomized) {
+    // Seleccionar mensaje aleatorio
+    message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+  } else {
+    // Seleccionar mensaje secuencial
+    message = motivationalMessages[currentMainMessageIndex];
+    currentMainMessageIndex = (currentMainMessageIndex + 1) % motivationalMessages.length;
+  }
 
   // Mostrar mensaje
-  messageText.textContent = randomMessage;
+  messageText.textContent = message;
   messageContainer.style.display = 'block';
   messageContainer.style.animation = 'slideInFromRight 0.5s ease-out';
 
@@ -761,4 +804,367 @@ window.addEventListener('beforeunload', () => {
   // Limpiar mensajes motivacionales
   if (messageInterval) clearInterval(messageInterval);
   if (currentMessageTimeout) clearTimeout(currentMessageTimeout);
+});
+
+// ========================================================================
+// NUEVO SISTEMA DE MODALES: GRUPO → CATEGORÍA → PRODUCTO
+// ========================================================================
+
+let currentModalGroup = null;
+let currentModalCategory = null;
+const categoryCarouselIntervals = new Map();
+
+// ========== ABRIR MODAL DE GRUPO ==========
+async function openGroupModal(groupKey) {
+  currentModalGroup = groupKey;
+  const modal = document.getElementById('groupModal');
+  const title = document.getElementById('groupModalTitle');
+  const grid = document.getElementById('categoriesModalGrid');
+
+  // Actualizar título
+  const groupInfo = CONFIG.CATEGORY_GROUPS[groupKey];
+  title.textContent = `${groupInfo.icon} ${groupInfo.name}`;
+
+  // Obtener categorías del grupo
+  const categoriesOfGroup = allCategories.filter(cat => cat.grupo_categoria === groupKey);
+
+  if (categoriesOfGroup.length === 0) {
+    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay categorías en este grupo</p>';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
+  // Randomizar el orden de las categorías
+  const shuffledCategories = categoriesOfGroup.sort(() => Math.random() - 0.5);
+
+  // Renderizar categorías con carruseles
+  grid.innerHTML = shuffledCategories.map(category => {
+    const carouselId = `cat-carousel-${category.id}`;
+    return `
+      <div class="category-card" data-category-id="${category.id}">
+        <div class="category-carousel-container">
+          <div class="category-carousel-track" id="${carouselId}">
+            <div class="category-carousel-slide">
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gris-medio);">
+                Cargando...
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="category-card-content">
+          <h3 class="category-card-name">${category.nombre}</h3>
+          <p class="category-card-count" id="cat-count-${category.id}">Explorando...</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Mostrar modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Cargar productos aleatorios para cada categoría
+  for (const category of shuffledCategories) {
+    loadCategoryCarousel(category.id);
+  }
+
+  // Event listeners para categorías
+  document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const categoryId = card.dataset.categoryId;
+      openCategoryModal(categoryId);
+    });
+  });
+}
+
+// ========== CARGAR CARRUSEL DE UNA CATEGORÍA EN EL MODAL DE GRUPO ==========
+async function loadCategoryCarousel(categoryId) {
+  const result = await getRandomProductsByCategory(categoryId, 5);
+
+  if (!result.success || result.data.length === 0) {
+    const track = document.getElementById(`cat-carousel-${categoryId}`);
+    if (track) {
+      track.innerHTML = `
+        <div class="category-carousel-slide">
+          <img src="https://via.placeholder.com/300x250?text=Sin+Productos" alt="Sin productos">
+        </div>
+      `;
+    }
+    return;
+  }
+
+  const products = result.data;
+  const track = document.getElementById(`cat-carousel-${categoryId}`);
+
+  if (!track) return;
+
+  // Renderizar slides
+  track.innerHTML = products.map(product => {
+    const imageUrl = product.imagenes && product.imagenes.length > 0
+      ? product.imagenes[0]
+      : 'https://via.placeholder.com/300x250?text=Sin+Imagen';
+
+    return `
+      <div class="category-carousel-slide">
+        <img src="${imageUrl}" alt="${product.nombre}" loading="lazy">
+      </div>
+    `;
+  }).join('');
+
+  // Actualizar contador
+  const countElement = document.getElementById(`cat-count-${categoryId}`);
+  if (countElement) {
+    countElement.textContent = `${products.length}+ productos`;
+  }
+
+  // Iniciar autoplay si hay más de 1 producto
+  if (products.length > 1) {
+    startCategoryCarouselAutoplay(categoryId, products.length);
+  }
+}
+
+// ========== AUTOPLAY PARA CARRUSELES DE CATEGORÍAS ==========
+function startCategoryCarouselAutoplay(categoryId, totalSlides) {
+  // Limpiar interval existente
+  if (categoryCarouselIntervals.has(categoryId)) {
+    clearInterval(categoryCarouselIntervals.get(categoryId));
+  }
+
+  let currentSlide = 0;
+  const track = document.getElementById(`cat-carousel-${categoryId}`);
+
+  if (!track) return;
+
+  const interval = setInterval(() => {
+    currentSlide = (currentSlide + 1) % totalSlides;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+  }, CONFIG.CAROUSEL_INTERVAL);
+
+  categoryCarouselIntervals.set(categoryId, interval);
+}
+
+// ========== ABRIR MODAL DE CATEGORÍA ==========
+async function openCategoryModal(categoryId) {
+  currentModalCategory = categoryId;
+  const modal = document.getElementById('categoryModal');
+  const title = document.getElementById('categoryModalTitle');
+  const grid = document.getElementById('categoryProductsGrid');
+
+  // Obtener nombre de la categoría
+  const category = allCategories.find(cat => cat.id === parseInt(categoryId));
+  if (category) {
+    title.textContent = category.nombre;
+  }
+
+  // Mostrar loading
+  grid.innerHTML = '<div style="text-align: center; padding: 3rem;"><div class="spinner"></div><p>Cargando productos...</p></div>';
+
+  // Mostrar modal
+  modal.style.display = 'flex';
+
+  // Obtener todos los productos de la categoría
+  const { data: products, error } = await supabaseClient
+    .from('productos')
+    .select('*')
+    .eq('categoria_id', categoryId)
+    .eq('activo', true);
+
+  if (error || !products || products.length === 0) {
+    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay productos en esta categoría</p>';
+    return;
+  }
+
+  // Ordenar por precio (menor a mayor)
+  products.sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
+
+  // Renderizar productos
+  grid.innerHTML = products.map(product => {
+    const images = product.imagenes || [];
+    const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
+    let discountPercentage = 0;
+
+    if (hasDiscount) {
+      const original = parseFloat(product.precio_original);
+      const current = parseFloat(product.precio);
+      discountPercentage = Math.round(((original - current) / original) * 100);
+    }
+
+    const carouselId = `prod-carousel-${product.id}`;
+
+    return `
+      <div class="category-product-card" data-product-id="${product.id}">
+        <div class="category-product-carousel">
+          <div class="category-product-carousel-track" id="${carouselId}">
+            ${images.length > 0
+              ? images.map((img, index) => `
+                  <div class="category-product-carousel-slide">
+                    <img src="${img}" alt="${product.nombre} - ${index + 1}" loading="lazy">
+                  </div>
+                `).join('')
+              : `
+                  <div class="category-product-carousel-slide">
+                    <img src="https://via.placeholder.com/300x400?text=Sin+Imagen" alt="${product.nombre}">
+                  </div>
+                `
+            }
+          </div>
+          ${product.es_oferta || hasDiscount ? `
+            <span class="category-product-badge">
+              ${hasDiscount ? `¡${discountPercentage}% OFF!` : '¡OFERTA!'}
+            </span>
+          ` : ''}
+        </div>
+        <div class="category-product-info">
+          <h3 class="category-product-name">${product.nombre}</h3>
+          ${hasDiscount ? `
+            <p class="category-product-price-original">${formatPrice(product.precio_original)}</p>
+            <p class="category-product-price-discount">${formatPrice(product.precio)}</p>
+          ` : `
+            <p class="category-product-price">${formatPrice(product.precio)}</p>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Iniciar autoplay para productos con múltiples imágenes
+  products.forEach(product => {
+    const images = product.imagenes || [];
+    if (images.length > 1) {
+      startProductCarouselInCategory(product.id, images.length);
+    }
+  });
+
+  // Event listeners para productos
+  document.querySelectorAll('.category-product-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      const productId = card.dataset.productId;
+
+      // Obtener producto completo con categoría
+      const { data: product, error } = await supabaseClient
+        .from('productos')
+        .select(`
+          *,
+          categoria:categorias(*)
+        `)
+        .eq('id', productId)
+        .single();
+
+      if (!error && product) {
+        openProductModal(product);
+      }
+    });
+  });
+}
+
+// ========== AUTOPLAY PARA CARRUSELES DE PRODUCTOS EN MODAL DE CATEGORÍA ==========
+function startProductCarouselInCategory(productId, totalSlides) {
+  const carouselId = `prod-carousel-${productId}`;
+  let currentSlide = 0;
+  const track = document.getElementById(carouselId);
+
+  if (!track) return;
+
+  const interval = setInterval(() => {
+    currentSlide = (currentSlide + 1) % totalSlides;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+  }, CONFIG.CAROUSEL_INTERVAL);
+
+  // Guardar en el mismo Map para limpiar después
+  categoryCarouselIntervals.set(carouselId, interval);
+}
+
+// ========== CERRAR MODAL DE GRUPO ==========
+function closeGroupModal() {
+  const modal = document.getElementById('groupModal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  currentModalGroup = null;
+
+  // Limpiar todos los intervals de carruseles de categorías
+  categoryCarouselIntervals.forEach(interval => clearInterval(interval));
+  categoryCarouselIntervals.clear();
+}
+
+// ========== CERRAR MODAL DE CATEGORÍA ==========
+function closeCategoryModal() {
+  const modal = document.getElementById('categoryModal');
+  modal.style.display = 'none';
+  currentModalCategory = null;
+
+  // Limpiar intervals de productos
+  categoryCarouselIntervals.forEach(interval => clearInterval(interval));
+  categoryCarouselIntervals.clear();
+
+  // Restaurar overflow solo si no hay otro modal abierto
+  const groupModal = document.getElementById('groupModal');
+  if (groupModal.style.display === 'none') {
+    document.body.style.overflow = '';
+  }
+}
+
+// ========== VOLVER AL MODAL DE CATEGORÍA DESDE PRODUCTO ==========
+function backToCategoryModal() {
+  const productModal = document.getElementById('productModal');
+  const categoryModal = document.getElementById('categoryModal');
+
+  productModal.style.display = 'none';
+  categoryModal.style.display = 'flex';
+}
+
+// ========== EVENT LISTENERS PARA BOTONES DE NAVEGACIÓN ==========
+document.addEventListener('DOMContentLoaded', () => {
+  // Botón cerrar modal de grupo
+  document.getElementById('closeGroupModal')?.addEventListener('click', closeGroupModal);
+  document.querySelector('#groupModal .group-modal-overlay')?.addEventListener('click', closeGroupModal);
+
+  // Botón cerrar modal de categoría
+  document.getElementById('closeCategoryModal')?.addEventListener('click', () => {
+    closeCategoryModal();
+    // Si el modal de grupo estaba abierto, mostrarlo de nuevo
+    if (currentModalGroup) {
+      const groupModal = document.getElementById('groupModal');
+      groupModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  document.querySelector('#categoryModal .category-modal-overlay')?.addEventListener('click', () => {
+    closeCategoryModal();
+    if (currentModalGroup) {
+      const groupModal = document.getElementById('groupModal');
+      groupModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  // Botón volver desde categoría a grupo
+  document.getElementById('backToCategoryFromProducts')?.addEventListener('click', () => {
+    closeCategoryModal();
+    if (currentModalGroup) {
+      const groupModal = document.getElementById('groupModal');
+      groupModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  // Botón volver desde producto a categoría
+  document.getElementById('backToProducts')?.addEventListener('click', backToCategoryModal);
+
+  // Modificar el close del modal de producto para manejar navegación
+  const originalCloseProductModal = window.closeProductModal;
+  window.closeProductModal = function() {
+    originalCloseProductModal();
+
+    // Si venimos del modal de categoría, mostrarlo
+    if (currentModalCategory) {
+      const backBtn = document.getElementById('backToProducts');
+      backBtn.style.display = 'flex';
+      openCategoryModal(currentModalCategory);
+    } else {
+      const backBtn = document.getElementById('backToProducts');
+      backBtn.style.display = 'none';
+    }
+  };
 });

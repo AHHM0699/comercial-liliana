@@ -83,6 +83,9 @@
             <button class="admin-nav-btn" data-section="groups">
               Grupos
             </button>
+            <button class="admin-nav-btn" data-section="messages">
+              Mensajes
+            </button>
           </nav>
 
           <div class="admin-user-section">
@@ -174,6 +177,217 @@
 
           <div class="groups-grid" id="groupsGrid">
             <!-- Se llenará dinámicamente -->
+          </div>
+        </section>
+
+        <!-- ========== SECCIÓN MENSAJES ========== -->
+        <section id="messagesSection" class="admin-section" style="display: none;">
+          <div class="section-header">
+            <h1 class="section-title">Gestión de Mensajes Promocionales</h1>
+            <button id="saveMessagesBtn" class="btn btn-primary">
+              Guardar Cambios
+            </button>
+          </div>
+
+          <div class="messages-container">
+
+            <!-- CONFIGURACIÓN DE TIEMPOS -->
+            <div class="messages-card">
+              <h2 class="messages-card-title">Configuración de Tiempos</h2>
+              <div class="timing-grid">
+                <div class="form-group">
+                  <label for="headerInterval" class="form-label">
+                    Intervalo del Banner Superior (ms)
+                  </label>
+                  <input
+                    type="number"
+                    id="headerInterval"
+                    class="form-input"
+                    placeholder="4000"
+                    min="1000"
+                    step="100"
+                  >
+                  <small class="form-hint">Tiempo entre cada mensaje del banner (ej: 4000 = 4 segundos)</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="carouselInterval" class="form-label">
+                    Intervalo del Carrusel (ms)
+                  </label>
+                  <input
+                    type="number"
+                    id="carouselInterval"
+                    class="form-input"
+                    placeholder="3000"
+                    min="1000"
+                    step="100"
+                  >
+                  <small class="form-hint">Tiempo de rotación de imágenes en carruseles</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="modalMessageMinTime" class="form-label">
+                    Tiempo Mínimo - Mensajes Modal (ms)
+                  </label>
+                  <input
+                    type="number"
+                    id="modalMessageMinTime"
+                    class="form-input"
+                    placeholder="12000"
+                    min="1000"
+                    step="1000"
+                  >
+                  <small class="form-hint">Tiempo mínimo entre mensajes del modal</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="modalMessageMaxTime" class="form-label">
+                    Tiempo Máximo - Mensajes Modal (ms)
+                  </label>
+                  <input
+                    type="number"
+                    id="modalMessageMaxTime"
+                    class="form-input"
+                    placeholder="15000"
+                    min="1000"
+                    step="1000"
+                  >
+                  <small class="form-hint">Tiempo máximo entre mensajes del modal</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- CONFIGURACIÓN DE RANGOS DE PRECIO -->
+            <div class="messages-card">
+              <h2 class="messages-card-title">Rangos de Precio para Mensajes</h2>
+              <div class="price-ranges-grid">
+                <div class="form-group">
+                  <label for="midPriceThreshold" class="form-label">
+                    Precio para Envío Gratis (S/)
+                  </label>
+                  <input
+                    type="number"
+                    id="midPriceThreshold"
+                    class="form-input"
+                    placeholder="500"
+                    min="0"
+                    step="50"
+                  >
+                  <small class="form-hint">Productos >= a este precio califican para envío gratis</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="highPriceThreshold" class="form-label">
+                    Precio para Obsequios (S/)
+                  </label>
+                  <input
+                    type="number"
+                    id="highPriceThreshold"
+                    class="form-input"
+                    placeholder="1000"
+                    min="0"
+                    step="50"
+                  >
+                  <small class="form-hint">Productos >= a este precio califican para obsequios</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- MENSAJES DEL HEADER -->
+            <div class="messages-card">
+              <div class="messages-card-header">
+                <h2 class="messages-card-title">Mensajes del Banner Superior</h2>
+                <div class="messages-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="randomizeHeader" class="toggle-checkbox">
+                    <span class="toggle-text">Aleatorio</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="addHeaderMessage">
+                    + Agregar Mensaje
+                  </button>
+                </div>
+              </div>
+              <div class="messages-list" id="headerMessagesList">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
+            <!-- MENSAJES DEL BOTÓN PRINCIPAL DE WHATSAPP -->
+            <div class="messages-card">
+              <div class="messages-card-header">
+                <h2 class="messages-card-title">Mensajes del Botón Flotante de WhatsApp</h2>
+                <div class="messages-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="randomizeMain" class="toggle-checkbox">
+                    <span class="toggle-text">Aleatorio</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="addMainMessage">
+                    + Agregar Mensaje
+                  </button>
+                </div>
+              </div>
+              <div class="messages-list" id="mainMessagesList">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
+            <!-- MENSAJES DEL MODAL - PRECIO BAJO -->
+            <div class="messages-card">
+              <div class="messages-card-header">
+                <h2 class="messages-card-title">Mensajes del Modal - Precio Bajo (&lt; S/500)</h2>
+                <div class="messages-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="randomizeModalLow" class="toggle-checkbox">
+                    <span class="toggle-text">Aleatorio</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="addModalLowMessage">
+                    + Agregar Mensaje
+                  </button>
+                </div>
+              </div>
+              <div class="messages-list" id="modalLowMessagesList">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
+            <!-- MENSAJES DEL MODAL - PRECIO MEDIO -->
+            <div class="messages-card">
+              <div class="messages-card-header">
+                <h2 class="messages-card-title">Mensajes del Modal - Precio Medio (S/500 - S/999)</h2>
+                <div class="messages-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="randomizeModalMid" class="toggle-checkbox">
+                    <span class="toggle-text">Aleatorio</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="addModalMidMessage">
+                    + Agregar Mensaje
+                  </button>
+                </div>
+              </div>
+              <div class="messages-list" id="modalMidMessagesList">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
+            <!-- MENSAJES DEL MODAL - PRECIO ALTO -->
+            <div class="messages-card">
+              <div class="messages-card-header">
+                <h2 class="messages-card-title">Mensajes del Modal - Precio Alto (>= S/1000)</h2>
+                <div class="messages-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="randomizeModalHigh" class="toggle-checkbox">
+                    <span class="toggle-text">Aleatorio</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="addModalHighMessage">
+                    + Agregar Mensaje
+                  </button>
+                </div>
+              </div>
+              <div class="messages-list" id="modalHighMessagesList">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
           </div>
         </section>
 

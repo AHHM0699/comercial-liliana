@@ -119,6 +119,7 @@ function initNavigation() {
       document.getElementById('productsSection').style.display = 'none';
       document.getElementById('categoriesSection').style.display = 'none';
       document.getElementById('groupsSection').style.display = 'none';
+      document.getElementById('messagesSection').style.display = 'none';
 
       if (section === 'products') {
         document.getElementById('productsSection').style.display = 'block';
@@ -127,6 +128,9 @@ function initNavigation() {
       } else if (section === 'groups') {
         document.getElementById('groupsSection').style.display = 'block';
         loadGroups();
+      } else if (section === 'messages') {
+        document.getElementById('messagesSection').style.display = 'block';
+        initMessagesSection();
       }
     });
   });
@@ -1111,3 +1115,282 @@ window.confirmDeleteCategory = confirmDeleteCategory;
 window.editGroup = editGroup;
 window.confirmDeleteGroup = confirmDeleteGroup;
 window.removeImage = removeImage;
+
+// ========================================================================
+// GESTIÓN DE MENSAJES PROMOCIONALES
+// ========================================================================
+
+const MESSAGES_STORAGE_KEY = 'comercial_liliana_messages_config';
+
+// Configuración por defecto de mensajes
+const defaultMessagesConfig = {
+  timing: {
+    promoBannerInterval: 4000,
+    carouselInterval: 3000,
+    modalMessageMin: 12000,
+    modalMessageMax: 15000
+  },
+  priceRanges: {
+    midPrice: 500,
+    highPrice: 1000
+  },
+  randomize: {
+    header: true,
+    main: true,
+    modalLow: true,
+    modalMid: true,
+    modalHigh: true
+  },
+  headerMessages: [
+    '¡Pregunta por nuestras OFERTAS especiales! 🎉',
+    '¡Descuentos exclusivos en muebles! 💰',
+    '🚚 Envío GRATIS en compras mayores a S/500 al Bajo Piura',
+    '🎁 Obsequios especiales en compras mayores a S/1000',
+    '¡Escríbenos por WhatsApp y cotiza! 📱',
+    'Nuevos productos cada semana 🆕',
+    '💯 La mejor calidad al mejor precio',
+    '🏷️ Descuentos por compra al por mayor',
+    '⭐ Consulta por financiamiento disponible',
+    '📦 Productos de la mejor calidad para tu hogar'
+  ],
+  mainMessages: [
+    "💰 ¡Consulta por descuentos especiales!",
+    "🎁 ¡Tenemos ofertas increíbles para ti!",
+    "🆓 Envío GRATIS en compras +S/500 al Bajo Piura",
+    "🎁 Obsequios en compras +S/1000 ¡Pregunta!",
+    "⭐ Muebles de calidad al mejor precio",
+    "💬 ¿Tienes dudas? ¡Escríbenos ahora!",
+    "🏠 Renueva tu hogar con nuestros productos",
+    "✨ Consulta por el precio final con descuento",
+    "🚚 Envíos a todo Piura - Consulta por envío gratuito",
+    "💯 Productos de la mejor calidad",
+    "🎉 ¡Ofertas por tiempo limitado!",
+    "📱 Contáctanos para más información",
+    "🛋️ Encuentra el mueble perfecto para tu hogar",
+    "🏷️ Descuentos por compra al por mayor",
+    "💎 Productos premium con beneficios exclusivos",
+    "🎊 ¡Pregunta por nuestras promociones!",
+    "⭐ Consulta por financiamiento disponible",
+    "📦 Pregunta por disponibilidad inmediata",
+    "🚀 ¡Aprovecha las ofertas del día!",
+    "💝 Regalo especial en compras grandes"
+  ],
+  modalLowMessages: [
+    "💰 ¡Consulta por descuentos especiales!",
+    "🎁 ¿Buscas mejor precio? ¡Pregúntanos!",
+    "✨ Tenemos promociones increíbles para ti",
+    "💬 ¡Escríbenos y te damos el mejor precio!",
+    "🏷️ Descuentos por compra al por mayor",
+    "🎉 ¡Pregunta por nuestras ofertas del día!",
+    "💯 La mejor calidad al mejor precio",
+    "📦 ¿Quieres envío gratuito? ¡Pregúntanos cómo!",
+    "🚀 ¡Aprovecha nuestras promociones!",
+    "⭐ Consulta por financiamiento disponible"
+  ],
+  modalMidMessages: [
+    "🆓 ¡Envío GRATUITO a todo el Bajo Piura!",
+    "🎉 ¡Excelente elección! Envío gratis incluido",
+    "✨ Producto premium con envío sin costo",
+    "💰 Consulta por descuentos adicionales",
+    "🚚 Tu envío es GRATIS al Bajo Piura",
+    "💯 La mejor calidad + envío gratuito",
+    "🏷️ ¡Precio especial + envío sin costo!",
+    "⭐ Aprovecha el envío gratuito",
+    "🎁 Pregunta por financiamiento",
+    "📦 Envío gratis incluido en tu compra"
+  ],
+  modalHighMessages: [
+    "🎁 ¡OBSEQUIO incluido en tu compra!",
+    "🆓 Envío GRATIS + REGALO especial",
+    "✨ Producto premium + obsequio sorpresa",
+    "🎉 ¡Llévate un regalo con tu compra!",
+    "💰 Descuento especial + obsequio incluido",
+    "🚚 Envío gratis + regalo de cortesía",
+    "⭐ ¡Compra ahora y recibe un obsequio!",
+    "🎁 Regalo exclusivo por tu compra",
+    "💯 La mejor calidad + envío gratis + obsequio",
+    "🏆 Compra premium con regalo incluido",
+    "📦 Envío gratis al Bajo Piura + obsequio",
+    "💎 Producto de lujo con beneficios extras"
+  ]
+};
+
+// Cargar configuración de mensajes desde localStorage o usar defaults
+function loadMessagesConfig() {
+  const stored = localStorage.getItem(MESSAGES_STORAGE_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error('Error parsing messages config:', e);
+      return defaultMessagesConfig;
+    }
+  }
+  return defaultMessagesConfig;
+}
+
+// Guardar configuración de mensajes en localStorage
+function saveMessagesConfig(config) {
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(config));
+  console.log('✅ Configuración de mensajes guardada');
+}
+
+// Renderizar lista de mensajes
+function renderMessagesList(messages, containerId, messageType) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = messages.map((msg, index) => `
+    <div class="message-item" data-index="${index}">
+      <span class="message-drag-handle">☰</span>
+      <input
+        type="text"
+        class="message-input"
+        value="${msg.replace(/"/g, '&quot;')}"
+        data-type="${messageType}"
+        data-index="${index}"
+      >
+      <button
+        class="message-delete-btn"
+        onclick="deleteMessage('${messageType}', ${index})"
+        title="Eliminar mensaje"
+      >
+        ✕
+      </button>
+    </div>
+  `).join('');
+}
+
+// Cargar todos los mensajes en la interfaz
+function loadMessagesInterface() {
+  const config = loadMessagesConfig();
+
+  // Cargar tiempos
+  document.getElementById('headerInterval').value = config.timing.promoBannerInterval;
+  document.getElementById('carouselInterval').value = config.timing.carouselInterval;
+  document.getElementById('modalMessageMinTime').value = config.timing.modalMessageMin;
+  document.getElementById('modalMessageMaxTime').value = config.timing.modalMessageMax;
+
+  // Cargar rangos de precio
+  document.getElementById('midPriceThreshold').value = config.priceRanges.midPrice;
+  document.getElementById('highPriceThreshold').value = config.priceRanges.highPrice;
+
+  // Cargar toggles de aleatoriedad
+  if (config.randomize) {
+    document.getElementById('randomizeHeader').checked = config.randomize.header !== false;
+    document.getElementById('randomizeMain').checked = config.randomize.main !== false;
+    document.getElementById('randomizeModalLow').checked = config.randomize.modalLow !== false;
+    document.getElementById('randomizeModalMid').checked = config.randomize.modalMid !== false;
+    document.getElementById('randomizeModalHigh').checked = config.randomize.modalHigh !== false;
+  }
+
+  // Cargar listas de mensajes
+  renderMessagesList(config.headerMessages, 'headerMessagesList', 'header');
+  renderMessagesList(config.mainMessages, 'mainMessagesList', 'main');
+  renderMessagesList(config.modalLowMessages, 'modalLowMessagesList', 'modalLow');
+  renderMessagesList(config.modalMidMessages, 'modalMidMessagesList', 'modalMid');
+  renderMessagesList(config.modalHighMessages, 'modalHighMessagesList', 'modalHigh');
+}
+
+// Agregar nuevo mensaje
+function addMessage(messageType) {
+  const config = loadMessagesConfig();
+  const typeMap = {
+    header: 'headerMessages',
+    main: 'mainMessages',
+    modalLow: 'modalLowMessages',
+    modalMid: 'modalMidMessages',
+    modalHigh: 'modalHighMessages'
+  };
+
+  const key = typeMap[messageType];
+  if (key) {
+    config[key].push('Nuevo mensaje...');
+    saveMessagesConfig(config);
+    loadMessagesInterface();
+  }
+}
+
+// Eliminar mensaje
+function deleteMessage(messageType, index) {
+  const config = loadMessagesConfig();
+  const typeMap = {
+    header: 'headerMessages',
+    main: 'mainMessages',
+    modalLow: 'modalLowMessages',
+    modalMid: 'modalMidMessages',
+    modalHigh: 'modalHighMessages'
+  };
+
+  const key = typeMap[messageType];
+  if (key) {
+    if (confirm('¿Estás seguro de eliminar este mensaje?')) {
+      config[key].splice(index, 1);
+      saveMessagesConfig(config);
+      loadMessagesInterface();
+    }
+  }
+}
+
+// Guardar todos los cambios
+function saveAllMessagesChanges() {
+  const config = loadMessagesConfig();
+
+  // Guardar tiempos
+  config.timing.promoBannerInterval = parseInt(document.getElementById('headerInterval').value) || 4000;
+  config.timing.carouselInterval = parseInt(document.getElementById('carouselInterval').value) || 3000;
+  config.timing.modalMessageMin = parseInt(document.getElementById('modalMessageMinTime').value) || 12000;
+  config.timing.modalMessageMax = parseInt(document.getElementById('modalMessageMaxTime').value) || 15000;
+
+  // Guardar rangos de precio
+  config.priceRanges.midPrice = parseInt(document.getElementById('midPriceThreshold').value) || 500;
+  config.priceRanges.highPrice = parseInt(document.getElementById('highPriceThreshold').value) || 1000;
+
+  // Guardar toggles de aleatoriedad
+  if (!config.randomize) {
+    config.randomize = {};
+  }
+  config.randomize.header = document.getElementById('randomizeHeader').checked;
+  config.randomize.main = document.getElementById('randomizeMain').checked;
+  config.randomize.modalLow = document.getElementById('randomizeModalLow').checked;
+  config.randomize.modalMid = document.getElementById('randomizeModalMid').checked;
+  config.randomize.modalHigh = document.getElementById('randomizeModalHigh').checked;
+
+  // Guardar mensajes desde inputs
+  const saveMessagesFromInputs = (selector, key) => {
+    const inputs = document.querySelectorAll(selector);
+    config[key] = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+  };
+
+  saveMessagesFromInputs('[data-type="header"]', 'headerMessages');
+  saveMessagesFromInputs('[data-type="main"]', 'mainMessages');
+  saveMessagesFromInputs('[data-type="modalLow"]', 'modalLowMessages');
+  saveMessagesFromInputs('[data-type="modalMid"]', 'modalMidMessages');
+  saveMessagesFromInputs('[data-type="modalHigh"]', 'modalHighMessages');
+
+  saveMessagesConfig(config);
+  showNotification('✅ Configuración de mensajes guardada exitosamente');
+}
+
+// Inicializar eventos de la sección de mensajes
+function initMessagesSection() {
+  // Cargar interfaz
+  loadMessagesInterface();
+
+  // Botón de guardar
+  const saveBtn = document.getElementById('saveMessagesBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveAllMessagesChanges);
+  }
+
+  // Botones de agregar mensaje
+  document.getElementById('addHeaderMessage')?.addEventListener('click', () => addMessage('header'));
+  document.getElementById('addMainMessage')?.addEventListener('click', () => addMessage('main'));
+  document.getElementById('addModalLowMessage')?.addEventListener('click', () => addMessage('modalLow'));
+  document.getElementById('addModalMidMessage')?.addEventListener('click', () => addMessage('modalMid'));
+  document.getElementById('addModalHighMessage')?.addEventListener('click', () => addMessage('modalHigh'));
+}
+
+// Exponer funciones globalmente
+window.deleteMessage = deleteMessage;
+window.loadMessagesConfig = loadMessagesConfig;
