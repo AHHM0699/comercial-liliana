@@ -555,15 +555,23 @@ function goToSlide(carouselId, slideIndex) {
 // ========== INICIAR AUTOPLAY DEL CARRUSEL ==========
 function startCarouselAutoplay(carouselId) {
   const track = document.getElementById(`carousel-${carouselId}`);
-  if (!track) return;
+  if (!track) {
+    console.log('❌ No se encontró track para:', carouselId);
+    return;
+  }
 
   const slides = track.querySelectorAll('.product-carousel-slide');
-  if (slides.length <= 1) return;
+  if (slides.length <= 1) {
+    console.log('⚠️ No hay suficientes slides:', slides.length);
+    return;
+  }
 
   // Si ya existe un interval, limpiarlo
   if (activeCarousels.has(carouselId)) {
     clearInterval(activeCarousels.get(carouselId));
   }
+
+  console.log('🎬 Iniciando autoplay para', carouselId, 'con', slides.length, 'slides');
 
   let currentSlide = 0;
   const interval = setInterval(() => {
@@ -575,9 +583,12 @@ function startCarouselAutoplay(carouselId) {
     dots.forEach((dot, index) => {
       dot.classList.toggle('active', index === currentSlide);
     });
+
+    console.log('📸 Slide actual:', currentSlide, 'de', slides.length);
   }, CONFIG.CAROUSEL_INTERVAL);
 
   activeCarousels.set(carouselId, interval);
+  console.log('✅ Interval creado y guardado para', carouselId);
 }
 
 // ========== PAUSAR CARRUSEL ==========
@@ -677,9 +688,10 @@ scrollTopBtn.addEventListener('click', () => {
 
 // ========== MENSAJES FLOTANTES MOTIVACIONALES ==========
 const motivationalMessages = [
-  "💰 Consulta por nuestros descuentos especiales",
+  "💰 ¡Consulta por descuentos especiales!",
   "🎁 ¡Tenemos ofertas increíbles para ti!",
-  "📦 Pregunta por disponibilidad y envío",
+  "🆓 Envío GRATIS en compras +S/500 al Bajo Piura",
+  "🎁 Obsequios en compras +S/1000 ¡Pregunta!",
   "⭐ Muebles de calidad al mejor precio",
   "💬 ¿Tienes dudas? ¡Escríbenos ahora!",
   "🏠 Renueva tu hogar con nuestros productos",
@@ -689,7 +701,13 @@ const motivationalMessages = [
   "🎉 ¡Ofertas por tiempo limitado!",
   "📱 Contáctanos para más información",
   "🛋️ Encuentra el mueble perfecto para tu hogar",
-  "🆓 Compras mayores a S/500: envío gratuito al Bajo Piura"
+  "🏷️ Descuentos por compra al por mayor",
+  "💎 Productos premium con beneficios exclusivos",
+  "🎊 ¡Pregunta por nuestras promociones!",
+  "⭐ Consulta por financiamiento disponible",
+  "📦 Pregunta por disponibilidad inmediata",
+  "🚀 ¡Aprovecha las ofertas del día!",
+  "💝 Regalo especial en compras grandes"
 ];
 
 let messageInterval = null;

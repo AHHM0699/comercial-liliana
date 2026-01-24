@@ -523,9 +523,7 @@ function showModalMessages(product, hasDiscount, container, textElement) {
     messages = modalMessagesLow;
   }
 
-  let currentMessageIndex = 0;
-  let messageInterval;
-  let messageTimeout;
+  let messageTimeouts = []; // Array para guardar todos los timeouts
 
   function showNextMessage() {
     // Seleccionar mensaje aleatorio
@@ -536,21 +534,32 @@ function showModalMessages(product, hasDiscount, container, textElement) {
     container.style.animation = 'slideInFromRight 0.5s ease-out';
 
     // Ocultar después de 5 segundos
-    messageTimeout = setTimeout(() => {
+    const hideTimeout = setTimeout(() => {
       container.style.animation = 'fadeOut 0.5s ease-out';
       setTimeout(() => {
         container.style.display = 'none';
       }, 500);
     }, 5000);
+    messageTimeouts.push(hideTimeout);
+  }
+
+  // Función para programar el siguiente mensaje con tiempo variable
+  function scheduleNextMessage() {
+    // Tiempo aleatorio entre 12 y 15 segundos
+    const randomDelay = 12000 + Math.random() * 3000;
+    const nextTimeout = setTimeout(() => {
+      showNextMessage();
+      scheduleNextMessage(); // Programar el siguiente recursivamente
+    }, randomDelay);
+    messageTimeouts.push(nextTimeout);
   }
 
   // Mostrar primer mensaje después de 2 segundos
-  setTimeout(() => {
+  const initialTimeout = setTimeout(() => {
     showNextMessage();
-
-    // Luego mostrar cada 15 segundos
-    messageInterval = setInterval(showNextMessage, 15000);
+    scheduleNextMessage();
   }, 2000);
+  messageTimeouts.push(initialTimeout);
 
   // Configurar botón flotante de WhatsApp
   const whatsappBtn = document.getElementById('modalWhatsappFloat');
@@ -586,12 +595,13 @@ function showModalMessages(product, hasDiscount, container, textElement) {
     };
   }
 
-  // Limpiar intervals cuando se cierra el modal
+  // Limpiar timeouts cuando se cierra el modal
   const closeBtn = document.getElementById('closeProductModal');
   const originalOnClick = closeBtn.onclick;
   closeBtn.onclick = () => {
-    clearInterval(messageInterval);
-    clearTimeout(messageTimeout);
+    // Limpiar todos los timeouts
+    messageTimeouts.forEach(timeout => clearTimeout(timeout));
+    messageTimeouts = [];
     if (originalOnClick) originalOnClick();
     else closeProductModal();
   };

@@ -36,8 +36,14 @@ const CONFIG = {
   PROMO_MESSAGES: [
     '¡Pregunta por nuestras OFERTAS especiales! 🎉',
     '¡Descuentos exclusivos en muebles! 💰',
+    '🚚 Envío GRATIS en compras mayores a S/500 al Bajo Piura',
+    '🎁 Obsequios especiales en compras mayores a S/1000',
     '¡Escríbenos por WhatsApp y cotiza! 📱',
-    'Nuevos productos cada semana 🆕'
+    'Nuevos productos cada semana 🆕',
+    '💯 La mejor calidad al mejor precio',
+    '🏷️ Descuentos por compra al por mayor',
+    '⭐ Consulta por financiamiento disponible',
+    '📦 Productos de la mejor calidad para tu hogar'
   ],
 
   // Intervalo de cambio de mensaje del banner (ms)
