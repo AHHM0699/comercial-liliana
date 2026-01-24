@@ -2,23 +2,23 @@
   "name": "Comercial Liliana",
   "short_name": "C. Liliana",
   "description": "Catálogo de muebles - Una familia que completará tu hogar",
-  "start_url": "/",
+  "start_url": "/comercial-liliana/",
   "display": "standalone",
   "background_color": "#F8F9FA",
   "theme_color": "#6B9DC2",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/comercial-liliana/",
   "lang": "es",
   "dir": "ltr",
   "icons": [
     {
-      "src": "./assets/LOGO_LILIANA_NUEVO_2026.png",
+      "src": "./assets/logo-icono.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./assets/LOGO_LILIANA_NUEVO_2026.png",
+      "src": "./assets/logo-icono.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -27,38 +27,5 @@
   "categories": [
     "shopping",
     "lifestyle"
-  ],
-  "screenshots": [
-    {
-      "src": "./assets/LOGO_LILIANA_NUEVO_2026.png",
-      "sizes": "540x720",
-      "type": "image/png"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Catálogo",
-      "short_name": "Catálogo",
-      "description": "Ver catálogo de productos",
-      "url": "/",
-      "icons": [
-        {
-          "src": "./assets/LOGO_LILIANA_NUEVO_2026.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "WhatsApp",
-      "short_name": "WhatsApp",
-      "description": "Contactar por WhatsApp",
-      "url": "https://wa.me/51934634196",
-      "icons": [
-        {
-          "src": "./assets/LOGO_LILIANA_NUEVO_2026.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
   ]
 }
