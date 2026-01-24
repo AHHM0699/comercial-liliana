@@ -246,12 +246,8 @@
       });
     }
 
-    // Inicializar router cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof initRouter === 'function') {
-        initRouter();
-      }
-    });
+    // El router se inicializará automáticamente desde catalog.js
+    // después de que se carguen los datos de Supabase
   </script>
 
 </body>

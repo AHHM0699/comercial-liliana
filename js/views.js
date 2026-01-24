@@ -10,6 +10,8 @@ function renderHomeView() {
   const container = document.getElementById('home-groups-grid');
   if (!container) return;
 
+  const allGroups = window.allGroups || [];
+
   if (!allGroups || allGroups.length === 0) {
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay grupos disponibles</p>';
     return;
@@ -48,6 +50,9 @@ async function renderGroupView(groupId) {
   const backBtn = document.getElementById('group-back-btn');
 
   if (!container || !titleElement) return;
+
+  const allGroups = window.allGroups || [];
+  const allCategories = window.allCategories || [];
 
   // Configurar botón de regresar
   if (backBtn) {
@@ -117,6 +122,8 @@ async function renderCategoryView(categoryId, groupId) {
   const backBtn = document.getElementById('category-back-btn');
 
   if (!container || !titleElement) return;
+
+  const allCategories = window.allCategories || [];
 
   // Configurar botón de regresar
   if (backBtn) {

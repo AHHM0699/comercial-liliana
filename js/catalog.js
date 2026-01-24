@@ -168,6 +168,7 @@ async function loadCatalogData() {
   const groupsResult = await getGroups();
   if (groupsResult.success) {
     allGroups = groupsResult.data;
+    window.allGroups = allGroups; // Exportar globalmente
     console.log('✅ Grupos cargados:', allGroups);
   } else {
     console.error('❌ Error cargando grupos');
@@ -178,13 +179,19 @@ async function loadCatalogData() {
 
   if (result.success) {
     allCategories = result.data;
+    window.allCategories = allCategories; // Exportar globalmente
     console.log('✅ Categorías cargadas:', allCategories);
   } else {
     console.error('Error al cargar categorías:', result.error);
   }
 
-  // Los datos ya están cargados, el router se encargará de renderizar
+  // Datos cargados, ahora inicializar el router
   console.log('✅ Datos del catálogo listos');
+
+  // Inicializar router DESPUÉS de cargar los datos
+  if (typeof initRouter === 'function') {
+    initRouter();
+  }
 }
 
 
@@ -826,5 +833,8 @@ function startProductCarouselInCategory(productId, totalSlides) {
 }
 
 // Exportar funciones globalmente para uso en views.js
+window.formatPrice = formatPrice;
 window.startCategoryCarouselAutoplay = startCategoryCarouselAutoplay;
 window.startProductCarouselInCategory = startProductCarouselInCategory;
+window.loadGroupCarousels = loadGroupCarousels;
+window.startGroupCarousel = startGroupCarousel;
