@@ -960,7 +960,7 @@ function renderGroupsGrid() {
       </div>
       <div class="category-info">
         <span class="category-badge" style="background-color: ${group.color}20; color: ${group.color}">
-          ${group.grupo}
+          ID: ${group.id}
         </span>
         <span class="category-order">Orden: ${group.orden}</span>
       </div>
@@ -1019,7 +1019,7 @@ async function loadGroupData(groupId) {
     currentEditingGroup = group;
 
     document.getElementById('groupId').value = group.id;
-    document.getElementById('groupKey').value = group.grupo || '';
+    document.getElementById('groupKey').value = group.id; // Usar ID como identificador
     document.getElementById('groupName').value = group.nombre;
     document.getElementById('groupIcon').value = group.icono;
     document.getElementById('groupColor').value = group.color;
@@ -1030,7 +1030,6 @@ async function loadGroupData(groupId) {
 
     console.log('📝 Datos cargados en formulario:', {
       id: group.id,
-      grupo: group.grupo,
       nombre: group.nombre,
       icono: group.icono,
       color: group.color,
@@ -1053,7 +1052,6 @@ async function saveGroup() {
 
   try {
     const groupData = {
-      grupo: document.getElementById('groupKey').value.trim().toLowerCase(),
       nombre: document.getElementById('groupName').value.trim(),
       icono: document.getElementById('groupIcon').value.trim(),
       color: document.getElementById('groupColor').value.trim(),
