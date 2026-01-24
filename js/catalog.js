@@ -1149,24 +1149,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('closeGroupModal')?.addEventListener('click', closeGroupModal);
   document.querySelector('#groupModal .group-modal-overlay')?.addEventListener('click', closeGroupModal);
 
-  // Botón cerrar modal de categoría
+  // Botón cerrar modal de categoría - CERRAR TODO
   document.getElementById('closeCategoryModal')?.addEventListener('click', () => {
     closeCategoryModal();
-    // Si el modal de grupo estaba abierto, mostrarlo de nuevo
-    if (currentModalGroup) {
-      const groupModal = document.getElementById('groupModal');
-      groupModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
+    closeGroupModal(); // Cerrar también el modal de grupo si estaba abierto
   });
 
   document.querySelector('#categoryModal .category-modal-overlay')?.addEventListener('click', () => {
     closeCategoryModal();
-    if (currentModalGroup) {
-      const groupModal = document.getElementById('groupModal');
-      groupModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
+    closeGroupModal(); // Cerrar también el modal de grupo si estaba abierto
   });
 
   // Botón volver desde categoría a grupo
@@ -1182,19 +1173,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Botón volver desde producto a categoría
   document.getElementById('backToProducts')?.addEventListener('click', backToCategoryModal);
 
-  // Modificar el close del modal de producto para manejar navegación
-  const originalCloseProductModal = window.closeProductModal;
-  window.closeProductModal = function() {
-    originalCloseProductModal();
-
-    // Si venimos del modal de categoría, mostrarlo
-    if (currentModalCategory) {
-      const backBtn = document.getElementById('backToProducts');
-      backBtn.style.display = 'flex';
-      openCategoryModal(currentModalCategory);
-    } else {
-      const backBtn = document.getElementById('backToProducts');
-      backBtn.style.display = 'none';
-    }
-  };
+  // El botón cerrar de producto debe cerrar TODO, no volver atrás
+  // Solo el botón "volver" debe regresar al modal anterior (manejado en product-modal.js)
 });

@@ -131,14 +131,21 @@ async function getGroups() {
       .from('grupos')
       .select('*')
       .eq('activo', true)
-      .order('orden', { ascending: true });
+      .order('orden', { ascending: true, nullsFirst: false });
 
     if (error) throw error;
 
     console.log(`✅ ${data.length} grupos obtenidos`);
+    console.log('📊 Valores de orden desde Supabase:', data.map(g => ({
+      id: g.id,
+      nombre: g.nombre,
+      orden: g.orden,
+      tipo_orden: typeof g.orden
+    })));
     return { success: true, data: data };
   } catch (error) {
     console.error('❌ Error al obtener grupos:', error);
+    console.error('❌ Detalles del error:', error);
     return { success: false, error: error.message, data: [] };
   }
 }
