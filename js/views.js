@@ -8,17 +8,23 @@ function renderHomeView() {
   console.log('🏠 Renderizando vista HOME');
 
   const container = document.getElementById('home-groups-grid');
-  if (!container) return;
+  if (!container) {
+    console.error('❌ Contenedor home-groups-grid no encontrado');
+    return;
+  }
 
   const allGroups = window.allGroups || [];
+  console.log('📊 Grupos disponibles:', allGroups.length, allGroups);
 
   if (!allGroups || allGroups.length === 0) {
+    console.warn('⚠️ No hay grupos para mostrar');
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay grupos disponibles</p>';
     return;
   }
 
   // Ordenar por el campo 'orden'
   const sortedGroups = [...allGroups].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  console.log('✅ Grupos ordenados:', sortedGroups.length);
 
   container.innerHTML = sortedGroups.map(group => {
     return `
@@ -36,6 +42,8 @@ function renderHomeView() {
       </div>
     `;
   }).join('');
+
+  console.log('✅ HTML renderizado, iniciando carga de carruseles...');
 
   // Cargar imágenes aleatorias para cada grupo
   loadGroupCarousels();

@@ -197,6 +197,8 @@ async function loadCatalogData() {
 
 // ========== CARGAR CARRUSELES DE GRUPOS ==========
 async function loadGroupCarousels() {
+  const allGroups = window.allGroups || [];
+
   for (const group of allGroups) {
     const result = await getRandomProductsByGroup(group.id, 5);
 
