@@ -142,9 +142,9 @@ function initGlobalCarouselListeners() {
       goToSlide(carouselId, slideIndex);
     }
 
-    // Botones de consulta
-    if (e.target.closest('.product-consult-btn')) {
-      const btn = e.target.closest('.product-consult-btn');
+    // Botones de consulta (pantalla principal y modales)
+    if (e.target.closest('.product-consult-btn') || e.target.closest('.category-product-consult-btn')) {
+      const btn = e.target.closest('.product-consult-btn') || e.target.closest('.category-product-consult-btn');
       const name = btn.dataset.productName;
       const price = btn.dataset.productPrice;
       const hasDiscount = btn.dataset.hasDiscount === 'true';
@@ -1054,9 +1054,21 @@ async function openCategoryModal(categoryId) {
           ${hasDiscount ? `
             <p class="category-product-price-original">${formatPrice(product.precio_original)}</p>
             <p class="category-product-price-discount">${formatPrice(product.precio)}</p>
+            <p class="category-product-price-note">💬 ¡Consulta por el precio final!</p>
           ` : `
             <p class="category-product-price">${formatPrice(product.precio)}</p>
           `}
+          <button
+            class="btn btn-whatsapp category-product-consult-btn"
+            data-product-id="${product.id}"
+            data-product-name="${product.nombre}"
+            data-product-price="${formatPrice(product.precio)}"
+            data-has-discount="${hasDiscount}"
+            data-original-price="${hasDiscount ? formatPrice(product.precio_original) : ''}"
+            onclick="event.stopPropagation();"
+          >
+            📱 Consultar
+          </button>
         </div>
       </div>
     `;

@@ -1696,6 +1696,31 @@ body {
   color: var(--rojo);
 }
 
+.category-product-price-note {
+  font-size: 0.85rem;
+  color: var(--dorado);
+  margin-top: var(--espacio-xs);
+  font-weight: 500;
+}
+
+.category-product-consult-btn {
+  margin-top: var(--espacio-sm);
+  padding: var(--espacio-xs) var(--espacio-sm);
+  font-size: 0.9rem;
+  background-color: #25D366;
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: all var(--transicion);
+  width: 100%;
+}
+
+.category-product-consult-btn:hover {
+  background-color: #128C7E;
+  transform: scale(1.02);
+}
+
 .category-product-badge {
   position: absolute;
   top: var(--espacio-sm);
