@@ -122,6 +122,28 @@ async function getCategories() {
 }
 
 /**
+ * Obtiene todos los grupos de categorías desde la base de datos
+ * @returns {Promise<Object>} Lista de grupos
+ */
+async function getGroups() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('grupos')
+      .select('*')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+
+    if (error) throw error;
+
+    console.log(`✅ ${data.length} grupos obtenidos`);
+    return { success: true, data: data };
+  } catch (error) {
+    console.error('❌ Error al obtener grupos:', error);
+    return { success: false, error: error.message, data: [] };
+  }
+}
+
+/**
  * Obtiene una categoría por ID
  * @param {string} id - ID de la categoría
  * @returns {Promise<Object>} Categoría encontrada
@@ -421,19 +443,29 @@ async function countProducts(filters = {}) {
 
 /**
  * Obtiene productos aleatorios de un grupo
- * @param {string} grupo - Grupo de categoría
+ * @param {number} groupId - ID del grupo de categoría
  * @param {number} limit - Número máximo de productos
  * @returns {Promise<Array>} Lista de productos aleatorios
  */
-async function getRandomProductsByGroup(grupo, limit = 5) {
+async function getRandomProductsByGroup(groupId, limit = 5) {
   try {
+    console.log('🔍 Buscando categorías para grupo ID:', groupId);
+
     // Primero obtenemos todas las categorías del grupo
-    const { data: categories } = await supabaseClient
+    const { data: categories, error: catError } = await supabaseClient
       .from('categorias')
       .select('id')
-      .eq('grupo', grupo);
+      .eq('grupo_id', groupId);
+
+    console.log('📂 Categorías encontradas:', categories?.length || 0, categories);
+
+    if (catError) {
+      console.error('❌ Error buscando categorías:', catError);
+      throw catError;
+    }
 
     if (!categories || categories.length === 0) {
+      console.log('⚠️ No se encontraron categorías para el grupo');
       return { success: true, data: [] };
     }
 

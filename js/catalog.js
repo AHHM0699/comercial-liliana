@@ -9,6 +9,7 @@
  */
 
 // ========== VARIABLES GLOBALES ==========
+let allGroups = [];
 let allCategories = [];
 let allProducts = [];
 let displayedProducts = [];
@@ -162,12 +163,23 @@ function initGlobalCarouselListeners() {
   });
 }
 
-// ========== CARGAR CATEGORÍAS ==========
+// ========== CARGAR GRUPOS Y CATEGORÍAS ==========
 async function loadCategories() {
+  // Cargar grupos primero
+  const groupsResult = await getGroups();
+  if (groupsResult.success) {
+    allGroups = groupsResult.data;
+    console.log('✅ Grupos cargados:', allGroups);
+  } else {
+    console.error('❌ Error cargando grupos');
+  }
+
+  // Cargar categorías
   const result = await getCategories();
 
   if (result.success) {
     allCategories = result.data;
+    console.log('✅ Categorías cargadas:', allCategories);
     renderCategoryGroups();
   } else {
     console.error('Error al cargar categorías:', result.error);
@@ -177,24 +189,27 @@ async function loadCategories() {
 // ========== RENDERIZAR GRUPOS DE CATEGORÍAS ==========
 function renderCategoryGroups() {
   const container = document.getElementById('categoryGroupsGrid');
-  const groups = CONFIG.CATEGORY_GROUPS;
 
-  // Obtener entradas y randomizar el orden
-  const groupEntries = Object.entries(groups);
-  const shuffledGroups = groupEntries.sort(() => Math.random() - 0.5);
+  if (!allGroups || allGroups.length === 0) {
+    container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay grupos disponibles</p>';
+    return;
+  }
 
-  container.innerHTML = shuffledGroups.map(([groupKey, groupInfo]) => {
+  // Randomizar el orden de los grupos
+  const shuffledGroups = [...allGroups].sort(() => Math.random() - 0.5);
+
+  container.innerHTML = shuffledGroups.map(group => {
     return `
-      <div class="group-card" data-group="${groupKey}">
-        <div class="group-carousel" data-carousel-group="${groupKey}">
-          <div class="group-carousel-track" id="groupCarousel-${groupKey}">
+      <div class="group-card" data-group="${group.id}">
+        <div class="group-carousel" data-carousel-group="${group.id}">
+          <div class="group-carousel-track" id="groupCarousel-${group.id}">
             <!-- Se llenará con imágenes aleatorias -->
           </div>
         </div>
         <div class="group-card-content">
-          <div class="group-icon">${groupInfo.icon}</div>
-          <h3 class="group-name">${groupInfo.name}</h3>
-          <p class="group-count" id="groupCount-${groupKey}">Explorando...</p>
+          <div class="group-icon">${group.icono || '📦'}</div>
+          <h3 class="group-name">${group.nombre}</h3>
+          <p class="group-count" id="groupCount-${group.id}">Explorando...</p>
         </div>
       </div>
     `;
@@ -203,8 +218,8 @@ function renderCategoryGroups() {
   // Agregar event listeners
   document.querySelectorAll('.group-card').forEach(card => {
     card.addEventListener('click', () => {
-      const group = card.dataset.group;
-      openGroupModal(group);
+      const groupId = parseInt(card.dataset.group);
+      openGroupModal(groupId);
     });
   });
 
@@ -214,11 +229,11 @@ function renderCategoryGroups() {
 
 // ========== CARGAR CARRUSELES DE GRUPOS ==========
 async function loadGroupCarousels() {
-  for (const [groupKey] of Object.entries(CONFIG.CATEGORY_GROUPS)) {
-    const result = await getRandomProductsByGroup(groupKey, 5);
+  for (const group of allGroups) {
+    const result = await getRandomProductsByGroup(group.id, 5);
 
     if (result.success && result.data.length > 0) {
-      const carouselTrack = document.getElementById(`groupCarousel-${groupKey}`);
+      const carouselTrack = document.getElementById(`groupCarousel-${group.id}`);
       const products = result.data;
 
       // Renderizar imágenes
@@ -235,13 +250,13 @@ async function loadGroupCarousels() {
       }).join('');
 
       // Actualizar contador
-      const countElement = document.getElementById(`groupCount-${groupKey}`);
+      const countElement = document.getElementById(`groupCount-${group.id}`);
       if (countElement) {
         countElement.textContent = `${products.length}+ productos`;
       }
 
       // Iniciar carrusel automático
-      startGroupCarousel(groupKey, products.length);
+      startGroupCarousel(group.id, products.length);
     }
   }
 }
@@ -815,18 +830,31 @@ let currentModalCategory = null;
 const categoryCarouselIntervals = new Map();
 
 // ========== ABRIR MODAL DE GRUPO ==========
-async function openGroupModal(groupKey) {
-  currentModalGroup = groupKey;
+async function openGroupModal(groupId) {
+  currentModalGroup = groupId;
   const modal = document.getElementById('groupModal');
   const title = document.getElementById('groupModalTitle');
   const grid = document.getElementById('categoriesModalGrid');
 
-  // Actualizar título
-  const groupInfo = CONFIG.CATEGORY_GROUPS[groupKey];
-  title.textContent = `${groupInfo.icon} ${groupInfo.name}`;
+  console.log('🔍 Abriendo modal de grupo ID:', groupId);
 
-  // Obtener categorías del grupo
-  const categoriesOfGroup = allCategories.filter(cat => cat.grupo_categoria === groupKey);
+  // Buscar grupo por ID
+  const group = allGroups.find(g => g.id === groupId);
+  if (!group) {
+    console.error('❌ Grupo no encontrado:', groupId);
+    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">Grupo no encontrado</p>';
+    return;
+  }
+
+  console.log('✅ Grupo encontrado:', group);
+
+  // Actualizar título
+  title.textContent = `${group.icono || '📦'} ${group.nombre}`;
+
+  // Obtener categorías del grupo - filtrar por grupo_id
+  const categoriesOfGroup = allCategories.filter(cat => cat.grupo_id === groupId);
+
+  console.log('📂 Categorías del grupo:', categoriesOfGroup.length, categoriesOfGroup);
 
   if (categoriesOfGroup.length === 0) {
     grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay categorías en este grupo</p>';

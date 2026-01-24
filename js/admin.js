@@ -404,6 +404,10 @@ async function loadProductData(productId) {
     document.getElementById('productDescription').value = product.descripcion || '';
     document.getElementById('productIsOffer').checked = product.es_oferta;
 
+    // Cargar mensajes personalizados si existen
+    const customMessages = product.mensajes_personalizados || [];
+    document.getElementById('productCustomMessages').value = customMessages.join('\n');
+
     // Cargar imágenes existentes
     productImages = (product.imagenes || []).map(url => ({
       url,
@@ -689,6 +693,13 @@ async function saveProduct() {
 
     // Preparar datos del producto
     const originalPriceValue = document.getElementById('productOriginalPrice').value;
+
+    // Procesar mensajes personalizados
+    const customMessagesText = document.getElementById('productCustomMessages').value.trim();
+    const customMessages = customMessagesText
+      ? customMessagesText.split('\n').map(msg => msg.trim()).filter(msg => msg.length > 0)
+      : null;
+
     const productData = {
       nombre: document.getElementById('productName').value.trim(),
       precio: parseFloat(document.getElementById('productPrice').value),
@@ -697,6 +708,7 @@ async function saveProduct() {
       descripcion: document.getElementById('productDescription').value.trim(),
       es_oferta: document.getElementById('productIsOffer').checked,
       imagenes: imageUrls,
+      mensajes_personalizados: customMessages,
       activo: true
     };
 

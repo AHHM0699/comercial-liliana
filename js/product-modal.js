@@ -603,18 +603,29 @@ function showModalMessages(product, hasDiscount, container, textElement) {
 
   const precio = parseFloat(product.precio);
 
-  // Seleccionar mensajes según el precio
+  // Verificar si el producto tiene mensajes personalizados
   let messages;
   let messageType;
-  if (precio >= PRICE_HIGH) {
-    messages = modalMessagesHigh;
-    messageType = 'modalHigh';
-  } else if (precio >= PRICE_MID) {
-    messages = modalMessagesMid;
-    messageType = 'modalMid';
+  let useCustomMessages = false;
+
+  if (product.mensajes_personalizados && Array.isArray(product.mensajes_personalizados) && product.mensajes_personalizados.length > 0) {
+    // Usar mensajes personalizados del producto
+    messages = product.mensajes_personalizados;
+    messageType = 'custom';
+    useCustomMessages = true;
+    console.log('📝 Usando mensajes personalizados del producto:', messages);
   } else {
-    messages = modalMessagesLow;
-    messageType = 'modalLow';
+    // Seleccionar mensajes según el precio
+    if (precio >= PRICE_HIGH) {
+      messages = modalMessagesHigh;
+      messageType = 'modalHigh';
+    } else if (precio >= PRICE_MID) {
+      messages = modalMessagesMid;
+      messageType = 'modalMid';
+    } else {
+      messages = modalMessagesLow;
+      messageType = 'modalLow';
+    }
   }
 
   let messageTimeouts = []; // Array para guardar todos los timeouts
@@ -624,7 +635,9 @@ function showModalMessages(product, hasDiscount, container, textElement) {
     // Verificar si debe ser aleatorio o secuencial
     let message;
     const messagesConfig = window.MESSAGES_CONFIG;
-    const isRandomized = messagesConfig?.randomize?.[messageType] !== false;
+
+    // Los mensajes personalizados siempre son aleatorios
+    const isRandomized = useCustomMessages || (messagesConfig?.randomize?.[messageType] !== false);
 
     if (isRandomized) {
       // Seleccionar mensaje aleatorio
