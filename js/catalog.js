@@ -25,6 +25,9 @@ let currentFilters = {
 // Carruseles activos
 const activeCarousels = new Map();
 
+// Observer global para carruseles
+let carouselObserver = null;
+
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Iniciando Catálogo Comercial Liliana...');
@@ -33,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initPromoBanner();
   initSearchBar();
   initWhatsAppButtons();
-  initIntersectionObserver();
 
   // Cargar datos
   loadCategories();
@@ -517,28 +519,6 @@ function goToSlide(carouselId, slideIndex) {
   startCarouselAutoplay(carouselId);
 }
 
-// ========== INTERSECTION OBSERVER (AUTOPLAY) ==========
-function initIntersectionObserver() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const carouselId = entry.target.dataset.carouselId;
-
-      if (entry.isIntersecting) {
-        startCarouselAutoplay(carouselId);
-      } else {
-        pauseCarousel(carouselId);
-      }
-    });
-  }, {
-    threshold: 0.5
-  });
-
-  // Observar todos los carruseles
-  document.querySelectorAll('.product-carousel').forEach(carousel => {
-    observer.observe(carousel);
-  });
-}
-
 // ========== INICIAR AUTOPLAY DEL CARRUSEL ==========
 function startCarouselAutoplay(carouselId) {
   const track = document.getElementById(`carousel-${carouselId}`);
@@ -569,23 +549,26 @@ function pauseCarousel(carouselId) {
 
 // ========== INICIALIZAR AUTOPLAY PARA CARRUSELES DE PRODUCTOS ==========
 function initProductCarouselsAutoplay() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const carouselId = entry.target.dataset.carouselId;
+  // Crear observer solo una vez
+  if (!carouselObserver) {
+    carouselObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const carouselId = entry.target.dataset.carouselId;
 
-      if (entry.isIntersecting) {
-        startCarouselAutoplay(carouselId);
-      } else {
-        pauseCarousel(carouselId);
-      }
+        if (entry.isIntersecting) {
+          startCarouselAutoplay(carouselId);
+        } else {
+          pauseCarousel(carouselId);
+        }
+      });
+    }, {
+      threshold: 0.5
     });
-  }, {
-    threshold: 0.5
-  });
+  }
 
-  // Observar todos los carruseles de productos
+  // Observar todos los carruseles de productos que no estén siendo observados
   document.querySelectorAll('.product-carousel').forEach(carousel => {
-    observer.observe(carousel);
+    carouselObserver.observe(carousel);
   });
 }
 
