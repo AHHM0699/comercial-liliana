@@ -203,9 +203,10 @@ function renderCategoryGroups() {
   // Los grupos ya están ordenados en loadCategories()
   console.log('📋 Renderizando grupos en orden:', allGroups.map(g => ({ nombre: g.nombre, orden: g.orden })));
 
-  container.innerHTML = allGroups.map(group => {
+  container.innerHTML = allGroups.map((group, index) => {
+    console.log(`🎯 Renderizando posición ${index}: ${group.nombre} (orden: ${group.orden})`);
     return `
-      <div class="group-card" data-group="${group.id}">
+      <div class="group-card" data-group="${group.id}" data-orden="${group.orden}" style="order: ${group.orden || 999};">
         <div class="group-carousel" data-carousel-group="${group.id}">
           <div class="group-carousel-track" id="groupCarousel-${group.id}">
             <!-- Se llenará con imágenes aleatorias -->
@@ -213,7 +214,7 @@ function renderCategoryGroups() {
         </div>
         <div class="group-card-content">
           <div class="group-icon">${group.icono || '📦'}</div>
-          <h3 class="group-name">${group.nombre}</h3>
+          <h3 class="group-name">${group.nombre} <small style="opacity: 0.7;">#${group.orden}</small></h3>
           <p class="group-count" id="groupCount-${group.id}">Explorando...</p>
         </div>
       </div>

@@ -620,19 +620,17 @@ function showModalMessages(product, hasDiscount, container, textElement) {
   let messages = [...baseMessages]; // Copiar mensajes base
   let useCustomMessages = false;
 
-  // Debug: verificar si el producto tiene mensajes personalizados
-  console.log('🔍 Producto:', product.nombre);
-  console.log('🔍 mensajes_personalizados del producto:', product.mensajes_personalizados);
-  console.log('🔍 Es array?', Array.isArray(product.mensajes_personalizados));
-  console.log('🔍 Cantidad:', product.mensajes_personalizados?.length);
-
   if (product.mensajes_personalizados && Array.isArray(product.mensajes_personalizados) && product.mensajes_personalizados.length > 0) {
     // COMPLEMENTAR con mensajes personalizados (no reemplazar)
     messages = [...baseMessages, ...product.mensajes_personalizados];
     useCustomMessages = true;
-    console.log('✅ Combinando mensajes base (' + baseMessages.length + ') con personalizados (' + product.mensajes_personalizados.length + '). Total:', messages.length);
+    console.log('✅ MENSAJES COMBINADOS para ' + product.nombre + ':');
+    console.log('   📊 Base (rango precio): ' + baseMessages.length + ' mensajes');
+    console.log('   ⭐ Personalizados: ' + product.mensajes_personalizados.length + ' mensajes');
+    console.log('   🎯 TOTAL: ' + messages.length + ' mensajes');
+    console.log('   📝 Mensajes personalizados:', product.mensajes_personalizados);
   } else {
-    console.log('ℹ️ No hay mensajes personalizados, usando solo mensajes base (' + baseMessages.length + ')');
+    console.log('ℹ️ Usando solo mensajes base (' + baseMessages.length + ') para: ' + product.nombre);
   }
 
   let messageTimeouts = []; // Array para guardar todos los timeouts
