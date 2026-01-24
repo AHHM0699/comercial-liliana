@@ -863,11 +863,11 @@ async function openGroupModal(groupId) {
     return;
   }
 
-  // Randomizar el orden de las categorías
-  const shuffledCategories = categoriesOfGroup.sort(() => Math.random() - 0.5);
+  // Ordenar categorías alfabéticamente
+  const sortedCategories = categoriesOfGroup.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   // Renderizar categorías con carruseles
-  grid.innerHTML = shuffledCategories.map(category => {
+  grid.innerHTML = sortedCategories.map(category => {
     const carouselId = `cat-carousel-${category.id}`;
     return `
       <div class="category-card" data-category-id="${category.id}">
@@ -893,7 +893,7 @@ async function openGroupModal(groupId) {
   document.body.style.overflow = 'hidden';
 
   // Cargar productos aleatorios para cada categoría
-  for (const category of shuffledCategories) {
+  for (const category of sortedCategories) {
     loadCategoryCarousel(category.id);
   }
 
