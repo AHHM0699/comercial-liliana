@@ -930,8 +930,9 @@ body {
   height: 100%;
   z-index: 10000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 100px;
   animation: fadeIn 0.3s ease;
 }
 
@@ -950,7 +951,7 @@ body {
   background-color: var(--blanco);
   border-radius: 20px;
   max-width: 1200px;
-  max-height: 90vh;
+  max-height: calc(100vh - 120px);
   width: 95%;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -1389,8 +1390,9 @@ body {
   height: 100%;
   z-index: 2000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 100px;
 }
 
 .group-modal-overlay {
@@ -1407,7 +1409,7 @@ body {
   position: relative;
   width: 90%;
   max-width: 1200px;
-  max-height: 90vh;
+  max-height: calc(100vh - 120px);
   background-color: var(--blanco);
   border-radius: var(--radio-lg);
   padding: var(--espacio-xl);
@@ -1509,8 +1511,9 @@ body {
   height: 100%;
   z-index: 2100;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 100px;
 }
 
 .category-modal-overlay {
@@ -1527,7 +1530,7 @@ body {
   position: relative;
   width: 90%;
   max-width: 1400px;
-  max-height: 90vh;
+  max-height: calc(100vh - 120px);
   background-color: var(--blanco);
   border-radius: var(--radio-lg);
   padding: var(--espacio-xl);
@@ -1724,10 +1727,17 @@ body {
    ============================================ */
 
 @media (max-width: 768px) {
+  .group-modal,
+  .category-modal,
+  .product-modal {
+    padding-top: 80px;
+  }
+
   .group-modal-content,
-  .category-modal-content {
+  .category-modal-content,
+  .product-modal-content {
     width: 95%;
-    max-height: 95vh;
+    max-height: calc(100vh - 100px);
     padding: var(--espacio-md);
   }
 
