@@ -214,7 +214,7 @@ function renderCategoryGroups() {
         </div>
         <div class="group-card-content">
           <div class="group-icon">${group.icono || '📦'}</div>
-          <h3 class="group-name">${group.nombre} <small style="opacity: 0.7;">#${group.orden}</small></h3>
+          <h3 class="group-name">${group.nombre}</h3>
           <p class="group-count" id="groupCount-${group.id}">Explorando...</p>
         </div>
       </div>
