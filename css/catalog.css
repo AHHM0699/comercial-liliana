@@ -1908,3 +1908,211 @@ body {
     object-position: center !important;
   }
 }
+
+/* ============================================
+   MODAL DE BÚSQUEDA
+   ============================================ */
+
+.search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.search-modal-content {
+  position: relative;
+  width: 95%;
+  max-width: 1200px;
+  height: 90vh;
+  background-color: var(--gris-claro);
+  border-radius: var(--radio-lg);
+  overflow-y: auto;
+  padding: var(--espacio-lg);
+  z-index: 1;
+}
+
+.search-modal-header {
+  margin-bottom: var(--espacio-lg);
+  text-align: center;
+}
+
+.search-modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--azul-oscuro);
+  margin-bottom: var(--espacio-md);
+}
+
+.search-modal-input-container {
+  display: flex;
+  gap: var(--espacio-sm);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-modal-input {
+  flex: 1;
+  padding: var(--espacio-md);
+  font-size: 1.1rem;
+  border: 2px solid var(--azul-acero);
+  border-radius: var(--radio-md);
+  outline: none;
+  transition: border-color var(--transicion);
+}
+
+.search-modal-input:focus {
+  border-color: var(--dorado);
+}
+
+.search-modal-btn {
+  padding: var(--espacio-md) var(--espacio-lg);
+  background-color: var(--azul-acero);
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicion);
+}
+
+.search-modal-btn:hover {
+  background-color: var(--azul-oscuro);
+}
+
+.search-modal-body {
+  padding: var(--espacio-md) 0;
+}
+
+.search-results-section {
+  margin-bottom: var(--espacio-xl);
+}
+
+.search-results-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--azul-oscuro);
+  margin-bottom: var(--espacio-md);
+  padding-bottom: var(--espacio-sm);
+  border-bottom: 2px solid var(--dorado);
+}
+
+.search-groups-grid,
+.search-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--espacio-md);
+}
+
+.search-group-card,
+.search-category-card {
+  background-color: var(--blanco);
+  border-radius: var(--radio-md);
+  padding: var(--espacio-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transicion);
+  box-shadow: var(--sombra-suave);
+}
+
+.search-group-card:hover,
+.search-category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sombra-fuerte);
+}
+
+.search-group-icon,
+.search-category-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--espacio-sm);
+}
+
+.search-group-name,
+.search-category-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--azul-oscuro);
+}
+
+.search-empty-state {
+  text-align: center;
+  padding: var(--espacio-xl);
+  color: var(--gris-medio);
+}
+
+.search-empty-state p {
+  margin-bottom: var(--espacio-sm);
+}
+
+/* ============================================
+   BOTÓN FLOTANTE DE BÚSQUEDA
+   ============================================ */
+
+.modal-search-float {
+  position: fixed;
+  bottom: 100px;
+  right: 25px;
+  width: 55px;
+  height: 55px;
+  background-color: var(--azul-acero);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(107, 157, 194, 0.4);
+  transition: all var(--transicion);
+  z-index: 1000;
+}
+
+.modal-search-float:hover {
+  background-color: var(--azul-oscuro);
+  transform: scale(1.1);
+}
+
+.modal-search-float-icon {
+  font-size: 1.5rem;
+}
+
+/* Ajuste responsive para móviles */
+@media (max-width: 768px) {
+  .modal-search-float {
+    bottom: 90px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .modal-search-float-icon {
+    font-size: 1.3rem;
+  }
+
+  .search-modal-input-container {
+    flex-direction: column;
+  }
+
+  .search-modal-btn {
+    width: 100%;
+  }
+
+  .search-groups-grid,
+  .search-categories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}

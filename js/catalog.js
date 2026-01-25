@@ -725,19 +725,23 @@ function updateProductsCount() {
 
 // ========== ESTADOS DE CARGA ==========
 function showLoading() {
-  document.getElementById('loadingSpinner').style.display = 'flex';
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'flex';
 }
 
 function hideLoading() {
-  document.getElementById('loadingSpinner').style.display = 'none';
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'none';
 }
 
 function showEmptyState() {
-  document.getElementById('emptyState').style.display = 'block';
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.style.display = 'block';
 }
 
 function hideEmptyState() {
-  document.getElementById('emptyState').style.display = 'none';
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.style.display = 'none';
 }
 
 // ========== BOTÓN VOLVER ARRIBA ==========
@@ -1349,4 +1353,358 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // El botón cerrar de producto debe cerrar TODO, no volver atrás
   // Solo el botón "volver" debe regresar al modal anterior (manejado en product-modal.js)
+
+  // ========== BÚSQUEDA ==========
+  initSearchModal();
 });
+
+// ========================================================================
+// SISTEMA DE BÚSQUEDA AVANZADA
+// ========================================================================
+
+let searchModalMessageInterval = null;
+let searchModalMessageTimeout = null;
+
+function initSearchModal() {
+  const searchInput = document.getElementById('searchModalInput');
+  const searchBtn = document.getElementById('searchModalBtn');
+  const closeBtn = document.getElementById('closeSearchModal');
+  const overlay = document.querySelector('.search-modal-overlay');
+
+  // Botones flotantes de búsqueda en modales
+  const groupSearchBtn = document.getElementById('groupModalSearchFloat');
+  const categorySearchBtn = document.getElementById('categoryModalSearchFloat');
+  const searchModalWhatsappBtn = document.getElementById('searchModalWhatsappFloat');
+
+  // Abrir modal de búsqueda desde botones flotantes
+  groupSearchBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSearchModal();
+  });
+
+  categorySearchBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSearchModal();
+  });
+
+  // Cerrar modal de búsqueda
+  closeBtn?.addEventListener('click', closeSearchModal);
+  overlay?.addEventListener('click', closeSearchModal);
+
+  // Buscar al hacer click en botón o presionar Enter
+  searchBtn?.addEventListener('click', performSearch);
+  searchInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+
+  // Búsqueda en tiempo real mientras escribe
+  searchInput?.addEventListener('input', debounce(() => {
+    if (searchInput.value.trim().length >= 2) {
+      performSearch();
+    }
+  }, 300));
+
+  // Botón de WhatsApp en modal de búsqueda
+  searchModalWhatsappBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openWhatsApp('¡Hola! Estoy buscando un producto específico. ¿Podrían ayudarme?');
+  });
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+function openSearchModal() {
+  const modal = document.getElementById('searchModal');
+  const input = document.getElementById('searchModalInput');
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Enfocar el input
+  setTimeout(() => input?.focus(), 100);
+
+  // Iniciar mensajes motivacionales
+  startSearchModalMessages();
+}
+
+function closeSearchModal() {
+  const modal = document.getElementById('searchModal');
+  modal.style.display = 'none';
+
+  // Limpiar resultados
+  document.getElementById('searchModalInput').value = '';
+  document.getElementById('searchGroupsResults').style.display = 'none';
+  document.getElementById('searchCategoriesResults').style.display = 'none';
+  document.getElementById('searchProductsResults').style.display = 'none';
+  document.getElementById('searchEmptyState').style.display = 'none';
+
+  // Detener mensajes
+  stopSearchModalMessages();
+
+  // Restaurar overflow si no hay otros modales abiertos
+  const groupModal = document.getElementById('groupModal');
+  const categoryModal = document.getElementById('categoryModal');
+  if (groupModal.style.display !== 'none' || categoryModal.style.display !== 'none') {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+async function performSearch() {
+  const query = document.getElementById('searchModalInput').value.trim().toLowerCase();
+
+  if (query.length < 2) return;
+
+  // Normalizar la búsqueda (quitar acentos)
+  const normalizedQuery = normalizeString(query);
+
+  // Buscar en grupos, categorías y productos
+  const [groupResults, categoryResults, productResults] = await Promise.all([
+    searchGroups(normalizedQuery),
+    searchCategories(normalizedQuery),
+    searchProducts(normalizedQuery)
+  ]);
+
+  // Mostrar resultados
+  renderSearchResults(groupResults, categoryResults, productResults);
+}
+
+function normalizeString(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function searchGroups(query) {
+  return allGroups.filter(group => {
+    const nombre = normalizeString(group.nombre || '');
+    // Búsqueda permisiva: buscar coincidencia parcial
+    return nombre.includes(query) || query.split(' ').some(word => nombre.includes(word));
+  });
+}
+
+function searchCategories(query) {
+  return allCategories.filter(category => {
+    const nombre = normalizeString(category.nombre || '');
+    // Búsqueda permisiva
+    return nombre.includes(query) || query.split(' ').some(word => word.length > 2 && nombre.includes(word));
+  });
+}
+
+async function searchProducts(query) {
+  try {
+    // Construir búsqueda permisiva con múltiples términos
+    const terms = query.split(' ').filter(t => t.length > 1);
+
+    // Buscar productos que contengan cualquiera de los términos
+    const { data, error } = await supabaseClient
+      .from('productos')
+      .select('*')
+      .eq('activo', true)
+      .or(terms.map(term => `nombre.ilike.%${term}%`).join(','))
+      .limit(50);
+
+    if (error) {
+      console.error('Error buscando productos:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (e) {
+    console.error('Error en búsqueda de productos:', e);
+    return [];
+  }
+}
+
+function renderSearchResults(groups, categories, products) {
+  const groupsSection = document.getElementById('searchGroupsResults');
+  const categoriesSection = document.getElementById('searchCategoriesResults');
+  const productsSection = document.getElementById('searchProductsResults');
+  const emptyState = document.getElementById('searchEmptyState');
+
+  const groupsGrid = document.getElementById('searchGroupsGrid');
+  const categoriesGrid = document.getElementById('searchCategoriesGrid');
+  const productsGrid = document.getElementById('searchProductsGrid');
+
+  // Ocultar todo primero
+  groupsSection.style.display = 'none';
+  categoriesSection.style.display = 'none';
+  productsSection.style.display = 'none';
+  emptyState.style.display = 'none';
+
+  const hasResults = groups.length > 0 || categories.length > 0 || products.length > 0;
+
+  if (!hasResults) {
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  // Renderizar grupos
+  if (groups.length > 0) {
+    groupsSection.style.display = 'block';
+    groupsGrid.innerHTML = groups.map(group => `
+      <div class="search-group-card" data-group-id="${group.id}">
+        <div class="search-group-icon">${group.icono || '📦'}</div>
+        <div class="search-group-name">${group.nombre}</div>
+      </div>
+    `).join('');
+
+    // Event listeners para grupos
+    groupsGrid.querySelectorAll('.search-group-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const groupId = parseInt(card.dataset.groupId);
+        closeSearchModal();
+        openGroupModal(groupId);
+      });
+    });
+  }
+
+  // Renderizar categorías
+  if (categories.length > 0) {
+    categoriesSection.style.display = 'block';
+    categoriesGrid.innerHTML = categories.map(category => {
+      const group = allGroups.find(g => g.id === category.grupo_id);
+      return `
+        <div class="search-category-card" data-category-id="${category.id}">
+          <div class="search-category-icon">${group?.icono || '📂'}</div>
+          <div class="search-category-name">${category.nombre}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Event listeners para categorías
+    categoriesGrid.querySelectorAll('.search-category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const categoryId = card.dataset.categoryId;
+        closeSearchModal();
+        openCategoryModal(categoryId);
+      });
+    });
+  }
+
+  // Renderizar productos
+  if (products.length > 0) {
+    productsSection.style.display = 'block';
+    productsGrid.innerHTML = products.map(product => {
+      const images = product.imagenes || [];
+      const hasDiscount = product.precio_original && parseFloat(product.precio_original) > parseFloat(product.precio);
+      let discountPercentage = 0;
+
+      if (hasDiscount) {
+        const original = parseFloat(product.precio_original);
+        const current = parseFloat(product.precio);
+        discountPercentage = Math.round(((original - current) / original) * 100);
+      }
+
+      return `
+        <div class="category-product-card" data-product-id="${product.id}">
+          <div class="category-product-carousel">
+            <div class="category-product-carousel-track">
+              ${images.length > 0
+                ? `<div class="category-product-carousel-slide">
+                    <img src="${images[0]}" alt="${product.nombre}" loading="lazy">
+                  </div>`
+                : `<div class="category-product-carousel-slide">
+                    <img src="https://placehold.co/300x400?text=Sin+Imagen" alt="${product.nombre}">
+                  </div>`
+              }
+            </div>
+            ${product.es_oferta || hasDiscount ? `
+              <span class="category-product-badge">
+                ${hasDiscount ? `¡${discountPercentage}% OFF!` : '¡OFERTA!'}
+              </span>
+            ` : ''}
+          </div>
+          <div class="category-product-info">
+            <h3 class="category-product-name">${product.nombre}</h3>
+            ${hasDiscount ? `
+              <p class="category-product-price-original">${formatPrice(product.precio_original)}</p>
+              <p class="category-product-price-discount">${formatPrice(product.precio)}</p>
+            ` : `
+              <p class="category-product-price">${formatPrice(product.precio)}</p>
+            `}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Event listeners para productos
+    productsGrid.querySelectorAll('.category-product-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const productId = card.dataset.productId;
+
+        const { data: product, error } = await supabaseClient
+          .from('productos')
+          .select(`*, categoria:categorias(*)`)
+          .eq('id', productId)
+          .single();
+
+        if (!error && product) {
+          closeSearchModal();
+          openProductModal(product);
+        }
+      });
+    });
+  }
+}
+
+// Mensajes motivacionales para el modal de búsqueda
+function showSearchModalMessage() {
+  const messageContainer = document.getElementById('searchModalWhatsappMessages');
+  const messageText = document.getElementById('searchModalWhatsappText');
+
+  if (!messageContainer || !messageText) return;
+
+  const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+
+  messageText.textContent = message;
+  messageContainer.style.display = 'block';
+  messageContainer.style.animation = 'slideInFromRight 0.5s ease-out';
+
+  searchModalMessageTimeout = setTimeout(() => {
+    messageContainer.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+      messageContainer.style.display = 'none';
+    }, 500);
+  }, 5000);
+}
+
+function startSearchModalMessages() {
+  setTimeout(() => {
+    showSearchModalMessage();
+    searchModalMessageInterval = setInterval(() => {
+      showSearchModalMessage();
+    }, 15000 + Math.random() * 5000);
+  }, 3000);
+}
+
+function stopSearchModalMessages() {
+  if (searchModalMessageInterval) {
+    clearInterval(searchModalMessageInterval);
+    searchModalMessageInterval = null;
+  }
+  if (searchModalMessageTimeout) {
+    clearTimeout(searchModalMessageTimeout);
+    searchModalMessageTimeout = null;
+  }
+  const messageContainer = document.getElementById('searchModalWhatsappMessages');
+  if (messageContainer) {
+    messageContainer.style.display = 'none';
+  }
+}

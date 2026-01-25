@@ -164,6 +164,79 @@
     </div>
   </div>
 
+  <!-- ========== MODAL DE BÚSQUEDA ========== -->
+  <div id="searchModal" class="search-modal" style="display: none;">
+    <div class="search-modal-overlay"></div>
+    <div class="search-modal-content">
+      <button class="modal-close-btn" id="closeSearchModal" aria-label="Cerrar">✕</button>
+
+      <!-- Header interno del modal -->
+      <div class="modal-brand">
+        <img src="./assets/LOGO_LILIANA_NUEVO_2026.png" alt="Comercial Liliana" class="modal-brand-logo">
+        <div class="modal-brand-text">
+          <h2 class="modal-brand-name">Comercial Liliana</h2>
+          <p class="modal-brand-slogan">"Una familia que completará tu hogar"</p>
+        </div>
+      </div>
+
+      <div class="search-modal-header">
+        <h2 class="search-modal-title">🔍 Buscar</h2>
+        <div class="search-modal-input-container">
+          <input
+            type="text"
+            id="searchModalInput"
+            class="search-modal-input"
+            placeholder="Buscar productos, categorías, grupos..."
+            autocomplete="off"
+          >
+          <button id="searchModalBtn" class="search-modal-btn">Buscar</button>
+        </div>
+      </div>
+
+      <div class="search-modal-body">
+        <!-- Resultados de grupos -->
+        <div id="searchGroupsResults" class="search-results-section" style="display: none;">
+          <h3 class="search-results-title">📦 Grupos encontrados</h3>
+          <div id="searchGroupsGrid" class="search-groups-grid"></div>
+        </div>
+
+        <!-- Resultados de categorías -->
+        <div id="searchCategoriesResults" class="search-results-section" style="display: none;">
+          <h3 class="search-results-title">📂 Categorías encontradas</h3>
+          <div id="searchCategoriesGrid" class="search-categories-grid"></div>
+        </div>
+
+        <!-- Resultados de productos -->
+        <div id="searchProductsResults" class="search-results-section" style="display: none;">
+          <h3 class="search-results-title">🛒 Productos encontrados</h3>
+          <div id="searchProductsGrid" class="category-products-grid"></div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="searchEmptyState" class="search-empty-state" style="display: none;">
+          <p>No se encontraron resultados</p>
+          <p><small>Intenta con otras palabras</small></p>
+        </div>
+      </div>
+
+      <!-- Botón flotante de WhatsApp dentro del modal de búsqueda -->
+      <button
+        id="searchModalWhatsappFloat"
+        class="modal-whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+      >
+        <span class="modal-whatsapp-float-icon">💬</span>
+      </button>
+
+      <!-- Mensajes flotantes dentro del modal de búsqueda -->
+      <div id="searchModalWhatsappMessages" class="modal-whatsapp-messages" style="display: none;">
+        <div class="modal-whatsapp-message-bubble">
+          <p id="searchModalWhatsappText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== MODAL DE GRUPO ========== -->
   <div id="groupModal" class="group-modal" style="display: none;">
     <div class="group-modal-overlay"></div>
@@ -189,6 +262,15 @@
           <!-- Se llenará dinámicamente -->
         </div>
       </div>
+
+      <!-- Botón flotante de búsqueda dentro del modal de grupo -->
+      <button
+        id="groupModalSearchFloat"
+        class="modal-search-float"
+        aria-label="Buscar productos"
+      >
+        <span class="modal-search-float-icon">🔍</span>
+      </button>
 
       <!-- Botón flotante de WhatsApp dentro del modal de grupo -->
       <button
@@ -233,6 +315,15 @@
           <!-- Se llenará dinámicamente -->
         </div>
       </div>
+
+      <!-- Botón flotante de búsqueda dentro del modal de categoría -->
+      <button
+        id="categoryModalSearchFloat"
+        class="modal-search-float"
+        aria-label="Buscar productos"
+      >
+        <span class="modal-search-float-icon">🔍</span>
+      </button>
 
       <!-- Botón flotante de WhatsApp dentro del modal de categoría -->
       <button
