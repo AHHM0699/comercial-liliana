@@ -147,7 +147,7 @@ body {
   transition: all var(--transicion-rapida);
   overflow: hidden;
   position: fixed;
-  top: 152px; /* Justo debajo del header en PC */
+  top: 140px; /* Justo debajo del header en PC (igual que body padding-top) */
   left: 0;
   right: 0;
   z-index: 90;
@@ -172,14 +172,14 @@ body {
 /* ========== SECCIÓN DE GRUPOS DE CATEGORÍAS ========== */
 .category-groups {
   padding: var(--espacio-xl) 0;
-  padding-top: calc(152px + 50px); /* Header + banner fijo */
+  padding-top: calc(140px + 45px); /* Header (140px) + banner fijo (~45px) */
   background-color: var(--blanco);
 }
 
 /* Responsive para el banner y categorías en móviles */
 @media (max-width: 768px) {
   .promo-banner {
-    top: 76px; /* Header más pequeño en móviles */
+    top: 120px; /* Header móvil (igual que body padding-top en móvil) */
     padding: 6px var(--espacio-sm);
   }
 
@@ -188,7 +188,7 @@ body {
   }
 
   .category-groups {
-    padding-top: calc(76px + 45px); /* Header móvil + banner */
+    padding-top: calc(120px + 40px); /* Header móvil (120px) + banner (~40px) */
   }
 }
 
