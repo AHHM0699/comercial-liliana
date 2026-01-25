@@ -2059,6 +2059,37 @@ body {
   margin-bottom: var(--espacio-sm);
 }
 
+.search-group-count,
+.search-category-count {
+  font-size: 0.85rem;
+  color: var(--gris-medio);
+  margin-top: var(--espacio-xs);
+}
+
+.search-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-sm);
+  justify-content: center;
+  margin-top: var(--espacio-md);
+}
+
+.search-suggestion-btn {
+  padding: var(--espacio-sm) var(--espacio-md);
+  background-color: var(--azul-acero);
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all var(--transicion);
+}
+
+.search-suggestion-btn:hover {
+  background-color: var(--azul-oscuro);
+  transform: scale(1.05);
+}
+
 /* ============================================
    BOTÓN FLOTANTE DE BÚSQUEDA
    ============================================ */

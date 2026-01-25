@@ -79,18 +79,27 @@ function initPromoBanner() {
 // ========== BARRA DE BÚSQUEDA ==========
 function initSearchBar() {
   const searchInput = document.getElementById('searchInput');
-  let searchTimeout;
+  const searchBtn = document.getElementById('searchBtn');
 
-  searchInput.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
+  // Al hacer click en el input o escribir, abrir modal de búsqueda
+  searchInput.addEventListener('focus', () => {
+    const currentValue = searchInput.value.trim();
+    openSearchModal(currentValue);
+    searchInput.blur(); // Quitar foco del input principal
+  });
 
-    // Esperar 500ms después de que el usuario deje de escribir
-    searchTimeout = setTimeout(() => {
-      currentFilters.search = e.target.value.trim();
-      currentFilters.offset = 0;
-      displayedProducts = [];
-      loadProducts();
-    }, 500);
+  // También al hacer click en el botón de búsqueda
+  searchBtn?.addEventListener('click', () => {
+    const currentValue = searchInput.value.trim();
+    openSearchModal(currentValue);
+  });
+
+  // Al presionar Enter
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const currentValue = searchInput.value.trim();
+      openSearchModal(currentValue);
+    }
   });
 }
 
@@ -845,11 +854,10 @@ function initMotivationalMessages() {
   setTimeout(() => {
     showMotivationalMessage();
 
-    // Luego mostrar cada 20-30 segundos aleatoriamente
+    // Luego mostrar cada 15 segundos (el mensaje se oculta después de 5s, hay 10s de pausa)
     messageInterval = setInterval(() => {
-      const randomDelay = 20000 + Math.random() * 10000; // 20-30 segundos
-      setTimeout(showMotivationalMessage, randomDelay);
-    }, 30000);
+      showMotivationalMessage();
+    }, 15000);
   }, 10000);
 }
 
@@ -1426,15 +1434,26 @@ function debounce(func, wait) {
   };
 }
 
-function openSearchModal() {
+function openSearchModal(initialValue = '') {
   const modal = document.getElementById('searchModal');
   const input = document.getElementById('searchModalInput');
 
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  // Enfocar el input
-  setTimeout(() => input?.focus(), 100);
+  // Si hay un valor inicial, ponerlo en el input y buscar
+  if (initialValue && initialValue.length > 0) {
+    input.value = initialValue;
+    setTimeout(() => {
+      input?.focus();
+      if (initialValue.length >= 2) {
+        performSearch();
+      }
+    }, 100);
+  } else {
+    // Enfocar el input
+    setTimeout(() => input?.focus(), 100);
+  }
 
   // Iniciar mensajes motivacionales
   startSearchModalMessages();
@@ -1472,15 +1491,28 @@ async function performSearch() {
   // Normalizar la búsqueda (quitar acentos)
   const normalizedQuery = normalizeString(query);
 
-  // Buscar en grupos, categorías y productos
-  const [groupResults, categoryResults, productResults] = await Promise.all([
-    searchGroups(normalizedQuery),
-    searchCategories(normalizedQuery),
-    searchProducts(normalizedQuery)
-  ]);
+  // Buscar en grupos y categorías (local)
+  const groupResults = searchGroups(normalizedQuery);
+  const categoryResults = searchCategories(normalizedQuery);
+
+  // Obtener IDs de categorías de los grupos encontrados
+  const groupCategoryIds = [];
+  for (const group of groupResults) {
+    const cats = allCategories.filter(c => c.grupo_id === group.id);
+    groupCategoryIds.push(...cats.map(c => c.id));
+  }
+
+  // Obtener IDs de categorías encontradas directamente
+  const directCategoryIds = categoryResults.map(c => c.id);
+
+  // Combinar todos los IDs de categorías relevantes
+  const allCategoryIds = [...new Set([...groupCategoryIds, ...directCategoryIds])];
+
+  // Buscar productos (por nombre Y por categorías encontradas)
+  const productResults = await searchProducts(normalizedQuery, allCategoryIds);
 
   // Mostrar resultados
-  renderSearchResults(groupResults, categoryResults, productResults);
+  renderSearchResults(groupResults, categoryResults, productResults, normalizedQuery);
 }
 
 function normalizeString(str) {
@@ -1491,34 +1523,88 @@ function normalizeString(str) {
     .trim();
 }
 
+// Calcular distancia de Levenshtein para búsqueda fuzzy
+function levenshteinDistance(a, b) {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+// Verificar si hay coincidencia fuzzy
+function fuzzyMatch(text, query, maxDistance = 2) {
+  text = normalizeString(text);
+  query = normalizeString(query);
+
+  // Coincidencia exacta o parcial
+  if (text.includes(query) || query.includes(text)) return true;
+
+  // Verificar cada palabra
+  const textWords = text.split(/\s+/);
+  const queryWords = query.split(/\s+/);
+
+  for (const qWord of queryWords) {
+    if (qWord.length < 3) continue;
+    for (const tWord of textWords) {
+      if (tWord.length < 3) continue;
+      // Coincidencia parcial
+      if (tWord.includes(qWord) || qWord.includes(tWord)) return true;
+      // Distancia de Levenshtein para errores ortográficos
+      const distance = levenshteinDistance(qWord, tWord);
+      const threshold = Math.max(1, Math.floor(qWord.length / 3));
+      if (distance <= threshold) return true;
+    }
+  }
+  return false;
+}
+
 function searchGroups(query) {
   return allGroups.filter(group => {
-    const nombre = normalizeString(group.nombre || '');
-    // Búsqueda permisiva: buscar coincidencia parcial
-    return nombre.includes(query) || query.split(' ').some(word => nombre.includes(word));
+    return fuzzyMatch(group.nombre || '', query);
   });
 }
 
 function searchCategories(query) {
   return allCategories.filter(category => {
-    const nombre = normalizeString(category.nombre || '');
-    // Búsqueda permisiva
-    return nombre.includes(query) || query.split(' ').some(word => word.length > 2 && nombre.includes(word));
+    return fuzzyMatch(category.nombre || '', query);
   });
 }
 
-async function searchProducts(query) {
+async function searchProducts(query, categoryIds = []) {
   try {
-    // Construir búsqueda permisiva con múltiples términos
     const terms = query.split(' ').filter(t => t.length > 1);
 
-    // Buscar productos que contengan cualquiera de los términos
+    // Primera búsqueda: por nombre de producto
+    let orConditions = terms.map(term => `nombre.ilike.%${term}%`);
+
+    // Si hay categorías encontradas, buscar productos de esas categorías
+    if (categoryIds.length > 0) {
+      orConditions.push(`categoria_id.in.(${categoryIds.join(',')})`);
+    }
+
     const { data, error } = await supabaseClient
       .from('productos')
       .select('*')
       .eq('activo', true)
-      .or(terms.map(term => `nombre.ilike.%${term}%`).join(','))
-      .limit(50);
+      .or(orConditions.join(','))
+      .limit(100);
 
     if (error) {
       console.error('Error buscando productos:', error);
@@ -1532,7 +1618,28 @@ async function searchProducts(query) {
   }
 }
 
-function renderSearchResults(groups, categories, products) {
+// Encontrar sugerencias cuando no hay resultados
+function findSuggestions(query) {
+  const suggestions = [];
+  const allNames = [
+    ...allGroups.map(g => ({ type: 'grupo', name: g.nombre, id: g.id })),
+    ...allCategories.map(c => ({ type: 'categoría', name: c.nombre, id: c.id }))
+  ];
+
+  for (const item of allNames) {
+    const name = normalizeString(item.name);
+    const distance = levenshteinDistance(normalizeString(query), name);
+    if (distance <= 3) {
+      suggestions.push({ ...item, distance });
+    }
+  }
+
+  // Ordenar por distancia (más cercano primero)
+  suggestions.sort((a, b) => a.distance - b.distance);
+  return suggestions.slice(0, 3);
+}
+
+function renderSearchResults(groups, categories, products, query) {
   const groupsSection = document.getElementById('searchGroupsResults');
   const categoriesSection = document.getElementById('searchCategoriesResults');
   const productsSection = document.getElementById('searchProductsResults');
@@ -1551,21 +1658,63 @@ function renderSearchResults(groups, categories, products) {
   const hasResults = groups.length > 0 || categories.length > 0 || products.length > 0;
 
   if (!hasResults) {
-    emptyState.style.display = 'block';
+    // Buscar sugerencias
+    const suggestions = findSuggestions(query);
+    if (suggestions.length > 0) {
+      emptyState.innerHTML = `
+        <p>No se encontraron resultados para "${query}"</p>
+        <p style="margin-top: 1rem;"><strong>¿Quizás quisiste decir?</strong></p>
+        <div class="search-suggestions">
+          ${suggestions.map(s => `
+            <button class="search-suggestion-btn" data-type="${s.type}" data-id="${s.id}">
+              ${s.name} (${s.type})
+            </button>
+          `).join('')}
+        </div>
+      `;
+      emptyState.style.display = 'block';
+
+      // Event listeners para sugerencias
+      emptyState.querySelectorAll('.search-suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.type;
+          const id = parseInt(btn.dataset.id);
+          if (type === 'grupo') {
+            closeSearchModal();
+            openGroupModal(id);
+          } else {
+            closeSearchModal();
+            openCategoryModal(id);
+          }
+        });
+      });
+    } else {
+      emptyState.innerHTML = `
+        <p>No se encontraron resultados para "${query}"</p>
+        <p><small>Intenta con otras palabras</small></p>
+      `;
+      emptyState.style.display = 'block';
+    }
     return;
   }
 
-  // Renderizar grupos
+  // Renderizar grupos con indicador de productos encontrados
   if (groups.length > 0) {
     groupsSection.style.display = 'block';
-    groupsGrid.innerHTML = groups.map(group => `
-      <div class="search-group-card" data-group-id="${group.id}">
-        <div class="search-group-icon">${group.icono || '📦'}</div>
-        <div class="search-group-name">${group.nombre}</div>
-      </div>
-    `).join('');
+    groupsGrid.innerHTML = groups.map(group => {
+      const groupProducts = products.filter(p => {
+        const cat = allCategories.find(c => c.id === p.categoria_id);
+        return cat && cat.grupo_id === group.id;
+      });
+      return `
+        <div class="search-group-card" data-group-id="${group.id}">
+          <div class="search-group-icon">${group.icono || '📦'}</div>
+          <div class="search-group-name">${group.nombre}</div>
+          <div class="search-group-count">${groupProducts.length} productos</div>
+        </div>
+      `;
+    }).join('');
 
-    // Event listeners para grupos
     groupsGrid.querySelectorAll('.search-group-card').forEach(card => {
       card.addEventListener('click', () => {
         const groupId = parseInt(card.dataset.groupId);
@@ -1575,20 +1724,21 @@ function renderSearchResults(groups, categories, products) {
     });
   }
 
-  // Renderizar categorías
+  // Renderizar categorías con indicador de productos
   if (categories.length > 0) {
     categoriesSection.style.display = 'block';
     categoriesGrid.innerHTML = categories.map(category => {
       const group = allGroups.find(g => g.id === category.grupo_id);
+      const catProducts = products.filter(p => p.categoria_id === category.id);
       return `
         <div class="search-category-card" data-category-id="${category.id}">
           <div class="search-category-icon">${group?.icono || '📂'}</div>
           <div class="search-category-name">${category.nombre}</div>
+          <div class="search-category-count">${catProducts.length} productos</div>
         </div>
       `;
     }).join('');
 
-    // Event listeners para categorías
     categoriesGrid.querySelectorAll('.search-category-card').forEach(card => {
       card.addEventListener('click', () => {
         const categoryId = card.dataset.categoryId;
@@ -1644,7 +1794,6 @@ function renderSearchResults(groups, categories, products) {
       `;
     }).join('');
 
-    // Event listeners para productos
     productsGrid.querySelectorAll('.category-product-card').forEach(card => {
       card.addEventListener('click', async () => {
         const productId = card.dataset.productId;
