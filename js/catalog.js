@@ -98,6 +98,8 @@ function initSearchBar() {
 function initWhatsAppButtons() {
   const ctaBtn = document.getElementById('ctaWhatsappBtn');
   const floatBtn = document.getElementById('whatsappFloat');
+  const groupModalFloatBtn = document.getElementById('groupModalWhatsappFloat');
+  const categoryModalFloatBtn = document.getElementById('categoryModalWhatsappFloat');
 
   const defaultMessage = '¡Hola! Me gustaría ver su catálogo de productos.';
 
@@ -109,6 +111,24 @@ function initWhatsAppButtons() {
     e.preventDefault();
     openWhatsApp(defaultMessage);
   });
+
+  // Botón flotante del modal de grupo
+  if (groupModalFloatBtn) {
+    groupModalFloatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openWhatsApp(defaultMessage);
+    });
+  }
+
+  // Botón flotante del modal de categoría
+  if (categoryModalFloatBtn) {
+    categoryModalFloatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openWhatsApp(defaultMessage);
+    });
+  }
 }
 
 /**
@@ -832,6 +852,106 @@ function initMotivationalMessages() {
 // Iniciar mensajes motivacionales cuando se carga la página
 window.addEventListener('load', initMotivationalMessages);
 
+// ========== MENSAJES FLOTANTES PARA MODALES DE GRUPO Y CATEGORÍA ==========
+let groupModalMessageInterval = null;
+let groupModalMessageTimeout = null;
+let categoryModalMessageInterval = null;
+let categoryModalMessageTimeout = null;
+
+function showGroupModalMessage() {
+  const messageContainer = document.getElementById('groupModalWhatsappMessages');
+  const messageText = document.getElementById('groupModalWhatsappText');
+
+  if (!messageContainer || !messageText) return;
+
+  const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+
+  messageText.textContent = message;
+  messageContainer.style.display = 'block';
+  messageContainer.style.animation = 'slideInFromRight 0.5s ease-out';
+
+  groupModalMessageTimeout = setTimeout(() => {
+    messageContainer.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+      messageContainer.style.display = 'none';
+    }, 500);
+  }, 5000);
+}
+
+function startGroupModalMessages() {
+  // Mostrar primer mensaje después de 3 segundos
+  setTimeout(() => {
+    showGroupModalMessage();
+
+    // Luego mostrar cada 15-20 segundos
+    groupModalMessageInterval = setInterval(() => {
+      showGroupModalMessage();
+    }, 15000 + Math.random() * 5000);
+  }, 3000);
+}
+
+function stopGroupModalMessages() {
+  if (groupModalMessageInterval) {
+    clearInterval(groupModalMessageInterval);
+    groupModalMessageInterval = null;
+  }
+  if (groupModalMessageTimeout) {
+    clearTimeout(groupModalMessageTimeout);
+    groupModalMessageTimeout = null;
+  }
+  const messageContainer = document.getElementById('groupModalWhatsappMessages');
+  if (messageContainer) {
+    messageContainer.style.display = 'none';
+  }
+}
+
+function showCategoryModalMessage() {
+  const messageContainer = document.getElementById('categoryModalWhatsappMessages');
+  const messageText = document.getElementById('categoryModalWhatsappText');
+
+  if (!messageContainer || !messageText) return;
+
+  const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+
+  messageText.textContent = message;
+  messageContainer.style.display = 'block';
+  messageContainer.style.animation = 'slideInFromRight 0.5s ease-out';
+
+  categoryModalMessageTimeout = setTimeout(() => {
+    messageContainer.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+      messageContainer.style.display = 'none';
+    }, 500);
+  }, 5000);
+}
+
+function startCategoryModalMessages() {
+  // Mostrar primer mensaje después de 3 segundos
+  setTimeout(() => {
+    showCategoryModalMessage();
+
+    // Luego mostrar cada 15-20 segundos
+    categoryModalMessageInterval = setInterval(() => {
+      showCategoryModalMessage();
+    }, 15000 + Math.random() * 5000);
+  }, 3000);
+}
+
+function stopCategoryModalMessages() {
+  if (categoryModalMessageInterval) {
+    clearInterval(categoryModalMessageInterval);
+    categoryModalMessageInterval = null;
+  }
+  if (categoryModalMessageTimeout) {
+    clearTimeout(categoryModalMessageTimeout);
+    categoryModalMessageTimeout = null;
+  }
+  const messageContainer = document.getElementById('categoryModalWhatsappMessages');
+  if (messageContainer) {
+    messageContainer.style.display = 'none';
+  }
+}
+
 // ========== LIMPIAR AL SALIR ==========
 window.addEventListener('beforeunload', () => {
   // Limpiar todos los intervals
@@ -914,13 +1034,6 @@ async function openGroupModal(groupId) {
         <div class="category-card-content">
           <h3 class="category-card-name">${category.nombre}</h3>
           <p class="category-card-count" id="cat-count-${category.id}">Explorando...</p>
-          <button
-            class="btn btn-whatsapp category-consult-btn"
-            data-category-name="${category.nombre}"
-            onclick="event.stopPropagation(); consultarCategoria('${category.nombre}');"
-          >
-            📱 Consultar
-          </button>
         </div>
       </div>
     `;
@@ -929,6 +1042,9 @@ async function openGroupModal(groupId) {
   // Mostrar modal
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+
+  // Iniciar mensajes motivacionales del modal de grupo
+  startGroupModalMessages();
 
   // Cargar productos aleatorios para cada categoría
   for (const category of sortedCategories) {
@@ -1038,6 +1154,9 @@ async function openCategoryModal(categoryId) {
   // Mostrar modal
   modal.style.display = 'flex';
 
+  // Iniciar mensajes motivacionales del modal de categoría
+  startCategoryModalMessages();
+
   // Obtener todos los productos de la categoría
   const { data: products, error } = await supabaseClient
     .from('productos')
@@ -1099,17 +1218,6 @@ async function openCategoryModal(categoryId) {
           ` : `
             <p class="category-product-price">${formatPrice(product.precio)}</p>
           `}
-          <button
-            class="btn btn-whatsapp category-product-consult-btn"
-            data-product-id="${product.id}"
-            data-product-name="${product.nombre}"
-            data-product-price="${formatPrice(product.precio)}"
-            data-has-discount="${hasDiscount}"
-            data-original-price="${hasDiscount ? formatPrice(product.precio_original) : ''}"
-            onclick="event.stopPropagation();"
-          >
-            📱 Consultar
-          </button>
         </div>
       </div>
     `;
@@ -1169,6 +1277,9 @@ function closeGroupModal() {
   document.body.style.overflow = '';
   currentModalGroup = null;
 
+  // Detener mensajes motivacionales del modal de grupo
+  stopGroupModalMessages();
+
   // Limpiar todos los intervals de carruseles de categorías
   categoryCarouselIntervals.forEach(interval => clearInterval(interval));
   categoryCarouselIntervals.clear();
@@ -1179,6 +1290,9 @@ function closeCategoryModal() {
   const modal = document.getElementById('categoryModal');
   modal.style.display = 'none';
   currentModalCategory = null;
+
+  // Detener mensajes motivacionales del modal de categoría
+  stopCategoryModalMessages();
 
   // Limpiar intervals de productos
   categoryCarouselIntervals.forEach(interval => clearInterval(interval));

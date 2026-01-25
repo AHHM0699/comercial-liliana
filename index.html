@@ -182,14 +182,27 @@
 
       <div class="group-modal-header">
         <h2 class="group-modal-title" id="groupModalTitle">Categorías</h2>
-        <button class="btn btn-whatsapp group-consult-btn" id="groupConsultBtn">
-          📱 Consultar sobre este grupo
-        </button>
       </div>
 
       <div class="group-modal-body">
         <div class="categories-grid" id="categoriesModalGrid">
           <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Botón flotante de WhatsApp dentro del modal de grupo -->
+      <button
+        id="groupModalWhatsappFloat"
+        class="modal-whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+      >
+        <span class="modal-whatsapp-float-icon">💬</span>
+      </button>
+
+      <!-- Mensajes flotantes dentro del modal de grupo -->
+      <div id="groupModalWhatsappMessages" class="modal-whatsapp-messages" style="display: none;">
+        <div class="modal-whatsapp-message-bubble">
+          <p id="groupModalWhatsappText"></p>
         </div>
       </div>
     </div>
@@ -213,14 +226,27 @@
 
       <div class="category-modal-header">
         <h2 class="category-modal-title" id="categoryModalTitle">Productos</h2>
-        <button class="btn btn-whatsapp category-modal-consult-btn" id="categoryConsultBtn">
-          📱 Consultar sobre esta categoría
-        </button>
       </div>
 
       <div class="category-modal-body">
         <div class="category-products-grid" id="categoryProductsGrid">
           <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Botón flotante de WhatsApp dentro del modal de categoría -->
+      <button
+        id="categoryModalWhatsappFloat"
+        class="modal-whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+      >
+        <span class="modal-whatsapp-float-icon">💬</span>
+      </button>
+
+      <!-- Mensajes flotantes dentro del modal de categoría -->
+      <div id="categoryModalWhatsappMessages" class="modal-whatsapp-messages" style="display: none;">
+        <div class="modal-whatsapp-message-bubble">
+          <p id="categoryModalWhatsappText"></p>
         </div>
       </div>
     </div>
